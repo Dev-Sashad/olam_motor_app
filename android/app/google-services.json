@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "77726694411",
+    "firebase_url": "https://records-f1e9f.firebaseio.com",
+    "project_id": "records-f1e9f",
+    "storage_bucket": "records-f1e9f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:77726694411:android:37d8c9763418dbe4cddb0e",
+        "android_client_info": {
+          "package_name": "com.example.motorapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "77726694411-r6r6dl886mko0hlctek8tes7d16du83e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCvvCJwJ00DNKOVk7RD75QdL2tcL92Rpkk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "77726694411-r6r6dl886mko0hlctek8tes7d16du83e.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
