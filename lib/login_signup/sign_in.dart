@@ -268,7 +268,7 @@ void submit() async {
                               
                                Align(
                                 alignment: Alignment.topLeft,
-                                child:Text('Making work easier, faster and smarter. No stress, No fuzz', style: TextStyle( fontSize:13,
+                                child:Text('Keeping plant motor records easier and faster', style: TextStyle( fontSize:13,
                               color: Colors.black),
                               textAlign:TextAlign.left
                               ),
