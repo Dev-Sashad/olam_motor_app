@@ -14,7 +14,7 @@ class  AddItemPage extends StatefulWidget with NavigationStates{
 class AddItemPageState extends State<AddItemPage> {
 final formKey = GlobalKey<FormState>();
 int  powerRating, currentRating, speed;
-int _groupValue = -1;
+int _groupValue = -1, _groupValue1 = -1, _groupValue2 = -1;
 String mountPost, gearboxInc, funcLocation, condition, locationNumber, modelNumber, bearingNumber,
  functionalLoc = 'Functional Location';
 QuerySnapshot motorList;
@@ -258,11 +258,13 @@ void _motorExist() {
         title: "Foot",
         value: 0,
         mtpost: mountPost,
+        groupValue: _groupValue
       ),
       _myRadioButton(
         title: "Flange",
         value: 1,
         mtpost: mountPost,
+        groupValue: _groupValue
       ),
     ],
   )
@@ -293,13 +295,15 @@ void _motorExist() {
             children: [
                 _myRadioButton(
         title: "Yes",
-        value: 2,
+        value: 0,
         mtpost: gearboxInc,
+        groupValue: _groupValue1
       ),
       _myRadioButton(
         title: "NO",
-        value: 3,
+        value: 1,
         mtpost: gearboxInc,
+        groupValue: _groupValue1
       ),
             ]
             )
@@ -328,14 +332,16 @@ void _motorExist() {
             children: [   
       _myRadioButton(
         title: "Good",
-        value: 4,
+        value: 0,
         mtpost: condition,
+        groupValue: _groupValue2
       ),
 
       _myRadioButton(
         title: "Bad",
-        value: 5,
+        value: 1,
         mtpost: condition,
+        groupValue: _groupValue2
       ),
 
             ]
@@ -533,12 +539,12 @@ return Container(
               );
 }
 
-Expanded _myRadioButton({String title, int value, String mtpost}) {
+Expanded _myRadioButton({String title, int value, int groupValue,String mtpost}) {
   return Expanded(
   child: RadioListTile(
     activeColor: Colors.green,
     value: value,
-    groupValue: _groupValue,
+    groupValue: groupValue,
     onChanged:  (newValue) { 
       setState(() {
          _groupValue = newValue;

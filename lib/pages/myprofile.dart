@@ -347,7 +347,10 @@ List <Widget> textFields = [];
       Row(
          
         children:[
-          edit? info(Text(surname.toString(),style: TextStyle(fontSize:20),)): 
+          edit? info(
+            child: Text(surname.toString(),style: TextStyle(fontSize:20),),
+            width: 150
+            ): 
             container(TextFormField(decoration:buildSignupInputDecoration(surname.toString()),
             validator: nameValidator,
             onSaved: (value) {
@@ -361,7 +364,10 @@ List <Widget> textFields = [];
 
            )),
            SizedBox(width:20),
-          edit ? info(Text(name.toString(),style: TextStyle(fontSize:20),)) : 
+          edit ? info(
+            child: Text(name.toString(),style: TextStyle(fontSize:20),),
+            width: 150
+            ) : 
            container(TextFormField(decoration:buildSignupInputDecoration(name.toString()),
            
             validator: nameValidator,
@@ -390,7 +396,10 @@ List <Widget> textFields = [];
       Text('Portfolio',style: TextStyle(fontSize:15,color:Colors.green, fontWeight:FontWeight.w600,),),
       SizedBox(height:5),
       
-       edit ? info(Text(portfolio.toString(),style: TextStyle(fontSize:20),)):
+       edit ? info(
+         child:Text(portfolio.toString(),style: TextStyle(fontSize:20),),
+         width: 150
+         ):
          
       container(TextFormField(decoration:buildSignupInputDecoration(portfolio.toString()),
       
@@ -419,8 +428,10 @@ List <Widget> textFields = [];
       Text('Email',style: TextStyle(fontSize:15, color:Colors.green, fontWeight:FontWeight.w600,),),
       SizedBox(height:5),
     
-     info(Text(email.toString(),style: TextStyle(fontSize:20),)),
-      
+     info(
+       child:Text(email.toString(),style: TextStyle(fontSize:20),),
+       width: 200
+     )
     ],
     )
      );
@@ -468,10 +479,11 @@ return Container(
               );
 }
 
-Container info (Text child){
+Container info ({Text child, double width}){
 return Container(
+  alignment: Alignment.center,
   height: 40,
-        width: 150,
+        width: width,
      //   padding: EdgeInsets.symmetric(horizontal:20),
                 child: Material(
                   borderRadius: BorderRadius.circular(5),

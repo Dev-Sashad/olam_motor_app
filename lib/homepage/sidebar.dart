@@ -213,6 +213,7 @@ void logout() async{
             alignment: Alignment.topLeft,
             child: GestureDetector(
               onTap: (){
+                FocusScope.of(context).unfocus();
                 onIconpressed();
               },
             child:ClipPath(
