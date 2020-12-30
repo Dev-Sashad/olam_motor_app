@@ -7,11 +7,12 @@ class  HelpPage extends StatelessWidget with NavigationStates{
    return Scaffold(
 
      appBar: AppBar(
-        
-        backgroundColor: Colors.green,
+         shadowColor: Colors.black12,
+        backgroundColor: Colors.white,
+        automaticallyImplyLeading: false,
         title: 
           Text('Help',textAlign:TextAlign.center, 
-          style:TextStyle(color: Colors.white, fontSize:25),),
+          style:TextStyle(color: Colors.green, fontSize:25),),
         centerTitle: true,
       ),
 
@@ -23,30 +24,24 @@ class  HelpPage extends StatelessWidget with NavigationStates{
 
               Align(
                   alignment: Alignment.center,
-                  child:Container(
-                    decoration: BoxDecoration(
-                      boxShadow: [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 4,
-                      )
-                      ]
-                    ),
                   child:CircleAvatar(
-                    radius: 100,
+                    backgroundColor: Colors.grey[200],
+                    radius: 80,
                     child: ClipOval(
                      child: SizedBox(
-                       width:180,
-                       height:180,
-                       child: Image.asset('assets/user.png', fit:BoxFit.fill, color: Colors.blueGrey,)
+                       width:145,
+                       height:145,
+                       child: Image.asset('assets/user.png', fit:BoxFit.fill, color: Colors.blueGrey[300],)
                      ),
                     ),
                   )
-                  )
+                  
                   ),
             SizedBox(height:15),
 
             Container(
+              padding: EdgeInsetsDirectional.only(start:10),
+              height: 35,
               margin: EdgeInsets.symmetric(horizontal:15),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(5),
@@ -69,6 +64,8 @@ class  HelpPage extends StatelessWidget with NavigationStates{
             SizedBox(height:15),
 
             Container(
+              padding: EdgeInsetsDirectional.only(start:10),
+              height: 35,
               margin: EdgeInsets.symmetric(horizontal:15),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(5),

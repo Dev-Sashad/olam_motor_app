@@ -25,7 +25,7 @@ class ForgetPasswordState extends State<ForgetPasswordPage> {
       r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
   RegExp regex = new RegExp(pattern);
   if (!regex.hasMatch(value)) {
-    return 'Email format is invalid';
+    return 'email format is invalid';
   }
   
   else if (value.isEmpty){
@@ -39,14 +39,13 @@ class ForgetPasswordState extends State<ForgetPasswordPage> {
 
 
 // loadng dialoge
-void _loadingDialog() {
-    showDialog(
+Future <void> _loadingDialog() {
+   return showDialog(
       context: context,
       builder: (BuildContext context) {
         // return object of type Dialog
         return AlertDialog(
-          backgroundColor: Colors.transparent,
-          title: new Text(""),
+          backgroundColor: Colors.white10,
           content: Container(
             height: MediaQuery.of(context).size.height*0.15,
           child:SpinKitFadingCube(
@@ -68,12 +67,15 @@ void _loadingDialog() {
         // return object of type Dialog
         return AlertDialog(
           title: new Image.asset('assets/notsuccessful.png',),
-          content: new Text("Invalid Credentials \n kindly provide valid details"),
+          content: new Text("Invalid Credentials \nkindly provide valid details",textAlign: TextAlign.center),
+          titlePadding: EdgeInsets.all(0),
+          contentPadding: EdgeInsets.all(5),
+          actionsPadding: EdgeInsets.symmetric(horizontal:20),
           actions: <Widget>[
             new FlatButton(
               child: new Text("Dismiss"),
               onPressed: () {             
-               Navigator.of(context).pop();
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context)=>ForgetPasswordPage()));
               },
             ),
           ],
@@ -82,11 +84,7 @@ void _loadingDialog() {
     );
   }
 
-
-
-
-
-//to delay the loading befor next ation
+  //delay loading
  Future <bool> checkSession() async {
     await Future.delayed(Duration(milliseconds: 5000), (){});
     return true;
@@ -114,12 +112,15 @@ bool validate(){
         return AlertDialog(
           title: new Image.asset('assets/successful.png',),
           content: new Text("Link to reset password has been sent to this mail \n kindly login to your mail"),
+          titlePadding: EdgeInsets.all(0),
+          contentPadding: EdgeInsets.all(5),
+          actionsPadding: EdgeInsets.symmetric(horizontal:20),
           actions: <Widget>[
             new FlatButton(
               child: new Text("Dismiss"),
               onPressed: () {             
-                Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (BuildContext context)=>ForgetPasswordPage()));
+                Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (BuildContext context)=>SigninPage()));
               },
             ),
           ],
@@ -128,11 +129,11 @@ bool validate(){
     );
   }
 
-void submit() {
+Future<void> submit() async {
    if (validate()){
      _loadingDialog();
-  checkSession().then((value) async {
-                if (value){
+
+     checkSession().then((value) async {
     await FirebaseAuth.instance.sendPasswordResetEmail(email: _email).then((value) {
                      return _showforgotPasswordDialog();       
                   }
@@ -143,9 +144,9 @@ void submit() {
   } 
 
   });
-          
-  }
-  });
+
+   });   
+  
 
   }
 }
@@ -336,7 +337,10 @@ return InputDecoration(
 }
 
 Container container (TextFormField child){
-return Container(              
+return Container(  
+  margin: EdgeInsets.symmetric(horizontal:20),
+  width: MediaQuery.of(context).size.width,
+  height: 50,            
                 child: Material(
                   borderRadius: BorderRadius.circular(5),
                   shadowColor: Colors.grey,

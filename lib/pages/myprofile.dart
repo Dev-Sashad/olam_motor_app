@@ -9,17 +9,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:motorapp/bloc.navigation_bloc/navigation_bloc.dart';
 
 
-enum AuthFormType {
-  edit, notEdit
-}
-
 class MyProfilepage extends StatefulWidget with NavigationStates {
 
-    final AuthFormType authFormType;
-   MyProfilepage ({
-   @required this.authFormType
-});
- 
  @override
 
   MyProfilepageState createState() => MyProfilepageState();
@@ -27,31 +18,15 @@ class MyProfilepage extends StatefulWidget with NavigationStates {
 }
 
 class MyProfilepageState extends State<MyProfilepage>{
-  AuthFormType authFormType;
-  MyProfilepageState ({this.authFormType});
   final formKey = GlobalKey<FormState>();
   final buttonKey = GlobalKey<FormState>();
-  var userIdentity;
+  var userIdentity, downloadUrl, profileImageUrl;
   DocumentSnapshot userDetails;
   File _image;
-
+  Image profileImage;
+  bool edit ;
   var name,surname,portfolio, email;
 
-  void switchFormState (state){
-   formKey.currentState.reset();
-   if  (state == 'edit'){
-     setState(() {
-      //loading=true;
-       authFormType = AuthFormType.edit;
-     });
-   }
-   else if (state == 'notEdit') {
-     setState(() {
-     // loading=true;
-     authFormType = AuthFormType.notEdit;
-     });
-   }
- }
 
   //name and surname validator
   String nameValidator(String value) {
@@ -60,7 +35,7 @@ class MyProfilepageState extends State<MyProfilepage>{
  
 
   if (!upperCase.hasMatch(value)) {
-    return 'Item name should start with caps';
+    return 'start with caps';
   }
   
   else if (value.isEmpty){
@@ -73,20 +48,25 @@ class MyProfilepageState extends State<MyProfilepage>{
    void _showProfileUpdatedDialog() {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext context)  {
         // return object of type Dialog
         return AlertDialog(
-          title: new Image.asset('assets/successful.png',),
-          content: new Text("Profile Updated"),
+          title: new Column(
+            children: [
+              Image.asset('assets/successful.png',height:80, width:80),
+              Text("Profile Updated",textAlign: TextAlign.center),
+            ]
+          ),
+          titlePadding: EdgeInsets.all(0),
+          contentPadding: EdgeInsets.all(5),
+          actionsPadding: EdgeInsets.symmetric(horizontal:20),
           actions: <Widget>[
             new FlatButton(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
               color: Colors.green,
               child: new Text("Dismiss", style: TextStyle(color:Colors.white, fontSize:15),),
-              onPressed: () {             
-               Navigator.of(context).pushReplacement(
-    MaterialPageRoute(builder: (BuildContext context)=>MyProfilepage(authFormType:AuthFormType.notEdit))
-  );
+              onPressed: () { 
+                Navigator.pop(context);         
               },
             ),
           ],
@@ -95,11 +75,7 @@ class MyProfilepageState extends State<MyProfilepage>{
     );
   }
 
-//to delay the loading befor next ation
- Future <bool> checkSession() async {
-    await Future.delayed(Duration(milliseconds: 5000), (){});
-    return true;
- } 
+
 
 //validate all conditions in the form 
 bool validate(){
@@ -114,21 +90,27 @@ bool validate(){
    }
  }
 
+ //delay loading
+ Future <bool> checkSession() async {
+    await Future.delayed(Duration(milliseconds: 5000), (){});
+    return true;
+ }
+
  // loadng dialoge
-void _loadingDialog() {
-    showDialog(
+Future <void> _loadingDialog() {
+   return showDialog(
       context: context,
       builder: (BuildContext context) {
         // return object of type Dialog
         return AlertDialog(
-          backgroundColor: Colors.transparent,
-          title: new Text(""),
+          backgroundColor: Colors.white10,
           content: Container(
             height: MediaQuery.of(context).size.height*0.15,
+            width: 60,
           child:SpinKitFadingCube(
         color: Colors.green[300],
         size: 50,
-       // duration: Duration(milliseconds:3000),
+        //duration: Duration(milliseconds:500),
       ),
           )
         );
@@ -136,37 +118,51 @@ void _loadingDialog() {
     );
   }
 
-  Future<void> uploadPic()  async {
-        //String fileName= _image.path;
-        StorageReference firebaseStorageRef  = FirebaseStorage.instance.ref().child(userIdentity);
-        StorageUploadTask uploadTask = firebaseStorageRef.putFile(_image);
-        await uploadTask.onComplete;
-        setState(() {
-            print('profile picture uploaded');
-
-        });
-
-       // var userInfo = FirebaseAuth.instance.currentUser.photoURL;
-       // userInfo = _image;
+        Future uploadPic()  async {
+          if(_image = null ) {
+            print('no image selected');
+          }
+          else{
+       StorageReference firebaseStorageRef  = FirebaseStorage.instance.ref().child(userIdentity);
+      var uploadTask = firebaseStorageRef .putFile(_image);
+      var storageTaskSnapshot = await uploadTask.onComplete;
+         setState(() async {
+            downloadUrl = await storageTaskSnapshot.ref.getDownloadURL();
+            
+         });
+         
+        User user  = FirebaseAuth.instance.currentUser;
+        user.updateProfile(
+                     photoURL: downloadUrl.toString()
+             ).then((value) => print('profile picture uploaded'))
+             .catchError((e){
+               print('$e');
+             });
+              print({downloadUrl.toString()});
+          } 
       }
 
     Future getImage() async {
         // ignore: invalid_use_of_visible_for_testing_member
-        var image = await ImagePicker.platform.pickImage(source: ImageSource.gallery);
+        // ignore: deprecated_member_use
+        var image = await ImagePicker.pickImage(source: ImageSource.gallery);
 
         setState(() {
-          _image = image as File;
+          _image = image ;
           print('Image path$_image');
         });
 
       }
 
  @override
-  Future<void> initState() async {
+  void initState() {
+
+        edit = true;
       //to get User Details
-        userIdentity= FirebaseAuth.instance.currentUser.uid;
+        User user = FirebaseAuth.instance.currentUser;
+        userIdentity = user.uid;
         print('$userIdentity');
-   await FirebaseFirestore.instance.collection('users').doc(userIdentity).get().then((value){
+   FirebaseFirestore.instance.collection('users').doc(userIdentity).get().then((value){
      setState(() {
        userDetails = value;
       });
@@ -176,11 +172,25 @@ void _loadingDialog() {
         portfolio = userDetails.data()['portfolio'].toString();
         email= userDetails.data()['email'].toString();
    }
-   else
-    name= null;
-    surname = null;
-    
+   else{
+   // name= null;
+   // surname = null;
+   }
    });
+
+      setState(() {
+        profileImageUrl = user.photoURL;
+
+        if (profileImageUrl != null ){
+            profileImage = Image.network(profileImageUrl, fit:BoxFit.fill);
+        } 
+        else{
+          profileImage = Image.asset('assets/user.png', fit:BoxFit.fill, color: Colors.greenAccent,);
+        }
+
+      });
+
+      
  
     super.initState();
   }
@@ -188,52 +198,48 @@ void _loadingDialog() {
   
   @override
   Widget build(BuildContext context) {
-      // ignore: missing_return
-     // Future uploadPic(BuildContext context)  {
-        //String fileName= _image.path;
-      //  StorageReference firebaseStorageRef  = FirebaseStorage.instance.ref().child(userIdentity);
-     //   StorageUploadTask uploadTask = firebaseStorageRef.putFile(_image);
-     //   Future<StorageTaskSnapshot> taskSnapshot = uploadTask.onComplete;
-      //  setState(() {
-    //        print('profile picture uploaded');
-
-     //   });
-    //  }
-
     return Scaffold(
           appBar: AppBar(
-        
-        backgroundColor: Colors.green,
+        shadowColor: Colors.black12,
+        backgroundColor: Colors.white,
+        automaticallyImplyLeading: false,
         title: 
           Text('Edit Profile',textAlign:TextAlign.center, 
-          style:TextStyle(color: Colors.white, fontSize:25),),
+          style:TextStyle(color: Colors.green, fontSize:25),),
         centerTitle: true,
       ),
 
       body: LayoutBuilder(
       builder: (ctx, constrains){
         return Scaffold(
+          backgroundColor: Colors.white,
           body: Container(
+             alignment: Alignment.center,
         height: constrains.maxHeight,
         child:SingleChildScrollView(
          child: Container(
+            padding: EdgeInsets.symmetric(horizontal:10,),
+            alignment: Alignment.center,
+                    color: Colors.white,
                     height: MediaQuery.of(context).size.height,
                     width: MediaQuery.of(context).size.width,
       
       child: Column(
         children: [
-            SizedBox(height:20),
-            Row(
-              children: [
-                Align(
+                         Container(
+                              child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Align(
                   alignment: Alignment.center,
                   child:CircleAvatar(
-                    radius: 100,
+                    backgroundColor: Colors.grey[200],
+                    radius: 80,
                     child: ClipOval(
                      child: SizedBox(
-                       width:180,
-                       height:180,
-                       child: (_image !=null)? Image.file(_image,fit:BoxFit.fill): Image.asset('assets/user.png', fit:BoxFit.fill, color: Colors.blueGrey,)
+                       width:145,
+                       height:145,
+                       child: (_image !=null)? Image.file(_image,fit:BoxFit.cover): profileImage
                      ),
                     ),
                   )
@@ -243,7 +249,7 @@ void _loadingDialog() {
                   child: IconButton(
                     icon: Icon(
                       FontAwesomeIcons.camera,
-                      size: 30,
+                      size: 25,
                       ),
                   
                   onPressed:(){
@@ -253,34 +259,39 @@ void _loadingDialog() {
                   )
               ],
             ),
+                          ),
+                        //  ),
 
-                  SizedBox(height:10),
+            SizedBox(height:10),
 
                    Form(key:buttonKey,
                      child: Column(
+                       crossAxisAlignment: CrossAxisAlignment.end,
                        children:buildButton(),
                      )
                    ),
 
-            Expanded(
-              child: Padding(
-               padding: const EdgeInsets.fromLTRB(15, 15, 15, 0),
+                 Padding(
+               padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+                    child: Form(key: formKey,
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: buildInputs() 
                     ),
-              )          
-            ),
+                )
+                 ),
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-              flatbutton(FlatButton( 
+            SizedBox(height:20),
+
+       
+             !edit? flatbutton(FlatButton( 
                 onPressed: () { 
 
                   if (validate()){
                       _loadingDialog();
-                  checkSession().then((value) { 
+
+                checkSession().then((value) {
+                      uploadPic();
            DocumentReference documentReference = FirebaseFirestore.instance.collection('users').doc(userIdentity);
                   FirebaseFirestore.instance.runTransaction((Transaction transaction) async{
 
@@ -288,16 +299,14 @@ void _loadingDialog() {
                 "name": name, 
                 'surname':surname, 
                 'portfolio':portfolio
-                });    
-            }); 
-
-            uploadPic();            
+                });   
+                
+                transaction.update(documentReference, {"photoUrl" : FirebaseAuth.instance.currentUser.photoURL.toString()});
+            });           
 
             _showProfileUpdatedDialog();       
-          //Navigator.of(context).pop();
-         } 
-                  );
-                  
+          //Navigator.of(context).pop();    
+                });         
                   }
 
                  },
@@ -305,28 +314,12 @@ void _loadingDialog() {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Text('Sumit', style: TextStyle(fontSize:20, color:Colors.white),),
-                    Icon(Icons.arrow_forward_ios, color:Colors.white, size:15)
+                    Text('Submit', style: TextStyle(fontSize:20, color:Colors.white),),
+                    Icon(Icons.arrow_forward_ios, color:Colors.white, size:20)
                   ],
 
-              ),)),
+              ),)): SizedBox(),
 
-              flatbutton(FlatButton( 
-                onPressed: () { 
-                   Navigator.of(context).pushReplacement(
-    MaterialPageRoute(builder: (BuildContext context)=>MyProfilepage(authFormType:AuthFormType.notEdit))
-  );
-                 },
-
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Text('Cancle', style: TextStyle(fontSize:20, color:Colors.white),),
-                    Icon(Icons.cancel, color: Colors.white, size:15)
-                  ],
-
-              ),))
-            ],)
         ]
       )
          )
@@ -340,128 +333,146 @@ void _loadingDialog() {
 
   
 
+// ignore: missing_return
 List<Widget> buildInputs(){
 List <Widget> textFields = [];
 
-if (authFormType == AuthFormType.notEdit){
   textFields.add(
-    Container(
-    child: Column(
-      children: [
+  
         Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-      Text('Name',style: TextStyle(fontSize:15,color:Colors.green),),
+      Text('Name',style: TextStyle(fontSize:15,color:Colors.green, fontWeight:FontWeight.w600,)),
       SizedBox(height:5),
       Row(
+         
         children:[
-           Text(surname,style: TextStyle(fontSize:25),),
-           SizedBox(height:10),
-           Text(name,style: TextStyle(fontSize:25),),
-        ]
-      ),
-      ]),
-
-      SizedBox(height:10),
-
-      Column(
-      children: [
-      Text('Portfolio',style: TextStyle(fontSize:15,color:Colors.green),),
-      SizedBox(height:5),
-    
-      Text(portfolio,style: TextStyle(fontSize:25),),
-      
-    ],
-    ),
-
-    Column(
-      children: [
-      Text('Email',style: TextStyle(fontSize:15, color:Colors.green),),
-      SizedBox(height:5),
-    
-      Text(email,style: TextStyle(fontSize:25),),
-      
-    ],
-    )
-    ],
-    )
-    )
-  );
-
-
-
-}
-
-else if (authFormType == AuthFormType.edit){
-  textFields.add(
-    Form(key:formKey,
-    child: Column(
-      children: [
-        Column(
-      children: [
-      Text('Name',style: TextStyle(fontSize:15),),
-      SizedBox(height:5),
-      Row(
-        children:[
-           container(TextFormField(decoration:buildSignupInputDecoration(surname),
+          edit? info(Text(surname.toString(),style: TextStyle(fontSize:20),)): 
+            container(TextFormField(decoration:buildSignupInputDecoration(surname.toString()),
             validator: nameValidator,
             onSaved: (value) {
-            return surname = value;
+              if (value = null){
+            return surname = surname;
+              }
+              else{
+                return surname = value;
+              }
             }
 
            )),
-            SizedBox(height:10),
-           container(TextFormField(decoration:buildSignupInputDecoration(name),
+           SizedBox(width:20),
+          edit ? info(Text(name.toString(),style: TextStyle(fontSize:20),)) : 
+           container(TextFormField(decoration:buildSignupInputDecoration(name.toString()),
            
             validator: nameValidator,
               onSaved: (value) {
-             return  name = value;
+               if (value = null){
+             return  name = name;
+              }
+              else{
+                return name = value;
+              }
               }
            
            )),
         ]
       ),
-      ]),
+      ]
+      ),
+  );
 
-      SizedBox(height:10),
+  textFields.add(  SizedBox(height:10));
 
+     textFields.add(
       Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-      Text('Portfolio',style: TextStyle(fontSize:15),),
+      Text('Portfolio',style: TextStyle(fontSize:15,color:Colors.green, fontWeight:FontWeight.w600,),),
       SizedBox(height:5),
-    
-      container(TextFormField(decoration:buildSignupInputDecoration(portfolio),
+      
+       edit ? info(Text(portfolio.toString(),style: TextStyle(fontSize:20),)):
+         
+      container(TextFormField(decoration:buildSignupInputDecoration(portfolio.toString()),
       
        validator: nameValidator,
               onSaved: (value) {
-             return  portfolio = value;
+                if (value = null){
+             return  portfolio = portfolio;
+              }
+              else{
+                return portfolio = value;
+              }
               }
       
       )),
+      
     ],
-    )
-    ],
-    )
-    )
-  );
+    ),
+    );
 
-}
+    textFields.add(  SizedBox(height:10));
+
+     textFields.add(
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,  
+      children: [
+      Text('Email',style: TextStyle(fontSize:15, color:Colors.green, fontWeight:FontWeight.w600,),),
+      SizedBox(height:5),
+    
+     info(Text(email.toString(),style: TextStyle(fontSize:20),)),
+      
+    ],
+    )
+     );
+
 return textFields;
 }
+
   InputDecoration buildSignupInputDecoration(String hint) {
 return InputDecoration(
      hintText: hint,
      hintStyle: TextStyle( 
-     fontSize: 15,
+     fontSize: 17,
       fontFamily: 'Montserrat',
       color: Colors.grey,
       ),     
-      border: InputBorder.none
+      border: InputBorder.none,
+      contentPadding: EdgeInsets.symmetric(vertical:7)
       );
 
 }
 
   Container container (TextFormField child){
 return Container(
+          width: 150,
+          height: 40,
+          padding: EdgeInsets.symmetric(horizontal:10),
+          alignment: Alignment.center,
+        decoration: BoxDecoration(
+          border: Border.all(
+            width: 1.5,
+            color: Colors.green
+          ),
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color:Colors.black12,
+              blurRadius: 4
+            )
+          ],
+          color:Colors.white
+        ),
+
+                  child: child,
+                    
+              );
+}
+
+Container info (Text child){
+return Container(
+  height: 40,
+        width: 150,
+     //   padding: EdgeInsets.symmetric(horizontal:20),
                 child: Material(
                   borderRadius: BorderRadius.circular(5),
                   shadowColor: Colors.grey,
@@ -474,9 +485,9 @@ return Container(
 
 Container flatbutton (FlatButton child){
 return Container(
-  margin: EdgeInsets.symmetric(horizontal:20),
+  margin: EdgeInsets.symmetric(horizontal:50),
                 child: Material(
-                  borderRadius: BorderRadius.circular(5),
+                  borderRadius: BorderRadius.circular(30),
                   shadowColor: Colors.grey,
                   color: Colors.green,
                   elevation: 2.0,
@@ -486,17 +497,10 @@ return Container(
 }
 
 List<Widget> buildButton(){
-  String newFormState;
-  if(authFormType == AuthFormType.edit){
-    newFormState = 'notEdit';
-  }
 
-  else if(authFormType == AuthFormType.notEdit){
-    newFormState = 'edit';
-  }
    return [ 
      Align(
-                alignment: Alignment.centerLeft,
+                alignment: Alignment.centerRight,
                 child: IconButton(
                     icon: Icon(
                       FontAwesomeIcons.pen,
@@ -504,12 +508,32 @@ List<Widget> buildButton(){
                       ),
                   
                   onPressed:(){
-                    setState(() {
-           switchFormState(newFormState);
-        });
+           
+             setState(() {
+              edit = !edit; 
+                });
+   
                   }
                   )
                   )
    ];
 }
+}
+
+class CustomMenuClipper extends CustomClipper <Path>{
+  @override
+  Path getClip(Size size) {
+
+    Path path = Path();
+    path.moveTo(0, 0);
+    path.lineTo(0.0, size.height/1.9);
+    path.lineTo(size.width +125, 0.0);
+    path.close();
+      return path;
+    }
+  
+    @override
+    bool shouldReclip(CustomClipper<Path> oldClipper) {
+  return true;
+  }
 }

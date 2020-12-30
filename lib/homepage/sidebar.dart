@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:motorapp/bloc.navigation_bloc/navigation_bloc.dart';
 import 'package:motorapp/homepage/menuitem.dart';
@@ -22,21 +21,22 @@ class SideBarpageState extends State<SideBarpage>  with SingleTickerProviderStat
   Stream <bool> isCollapsedStream;
   StreamSink<bool> isCollapsedSink;
   DocumentSnapshot userDetails;
-  var userIdentity,name,surname,email,portfolio, _image;
+  var userIdentity,name,surname,email,portfolio,_image;
  // final bool isCollapsed = false;
   final _animationDuration = const Duration(milliseconds:500);
 
   @override
-  Future<void> initState() async {
+  void initState() {
     super.initState();
-    _animationController = AnimationController(vsync: this, duration:_animationDuration);
+    _animationController = AnimationController(vsync:this, duration:_animationDuration);
     isCollapsedStreamController = PublishSubject<bool>();
     isCollapsedStream = isCollapsedStreamController.stream;
     isCollapsedSink = isCollapsedStreamController.sink;
 
-     userIdentity= FirebaseAuth.instance.currentUser.uid;
+     User user = FirebaseAuth.instance.currentUser;
+     userIdentity = user.uid;
      print('$userIdentity');
-   await FirebaseFirestore.instance.collection('users').doc(userIdentity).get().then((value) async {
+    FirebaseFirestore.instance.collection('users').doc(userIdentity).get().then((value) async {
       setState(() {
        userDetails = value;
       });
@@ -47,14 +47,11 @@ class SideBarpageState extends State<SideBarpage>  with SingleTickerProviderStat
         email = userDetails.data()['email'].toString();
         portfolio = userDetails.data()['portfolio'].toString();
    }
-     
-     StorageReference firebaseStorageRef  = FirebaseStorage.instance.ref().child(userIdentity);
-        FirebaseStorage uploadTask = firebaseStorageRef.getStorage();
-       // await uploadTask.;
-        setState(() {
-            _image = uploadTask;
 
-        });
+          setState(() {
+            _image = user.photoURL;
+          });
+     
 });
   }
 
@@ -83,7 +80,7 @@ void onIconpressed(){
 void logout() async{
         await FirebaseAuth.instance.signOut();
         onIconpressed();
-  Navigator.of(context).pushReplacement(
+  Navigator.pushReplacement(context,
     MaterialPageRoute(builder: (BuildContext context)=>SigninPage())
   );  
   }
@@ -100,14 +97,14 @@ void logout() async{
      duration: _animationDuration,
      top: 0,
      bottom: 0,
-     left: isCollapsedAsync.data? 0: -screenWidth ,
-     right: isCollapsedAsync.data? 0: screenWidth - 45,
+     left: isCollapsedAsync.data? -10: -screenWidth ,
+     right: isCollapsedAsync.data? 20: screenWidth - 30,
      child: Row(
       
         children: [
          Expanded(
            child: Container(
-             padding: EdgeInsets.symmetric(horizontal:20),
+             padding: EdgeInsets.symmetric(horizontal:10),
              color: Colors.green,
              child: Column(
                children: [
@@ -115,26 +112,38 @@ void logout() async{
 
                ListTile(
                  title: Row(
+                   crossAxisAlignment: CrossAxisAlignment.start,
                    children:[
-                     Text(surname, style: TextStyle(color:Colors.white, fontSize:30, fontWeight:FontWeight.w800),),
-                     Text(name,  style: TextStyle(color:Colors.white, fontSize:30, fontWeight:FontWeight.w800))
+                     Text(surname.toString(), style: TextStyle(color:Colors.white, fontSize:22, fontWeight:FontWeight.w600),),
+                     SizedBox(width:5,),
+                     Text(name.toString(),  style: TextStyle(color:Colors.white, fontSize:22, fontWeight:FontWeight.w600))
                    
                    ]),
                  subtitle: Column(
+                   crossAxisAlignment: CrossAxisAlignment.start,
                    children:[
-                     Text(portfolio,  style: TextStyle(color:Colors.lightGreenAccent, fontSize:20, )),
-                   Text(email,  style: TextStyle(color:Colors.lightGreenAccent, fontSize:20, )),
+                     Text(portfolio.toString(),  style: TextStyle(color:Colors.lightGreenAccent, fontSize:15, )),
+                   Text(email.toString(),  style: TextStyle(color:Colors.lightGreenAccent, fontSize:15, )),
                    ]),
                  leading: CircleAvatar(
-                   child: (_image !=null)? Image.file(_image,fit:BoxFit.fill): Image.asset('assets/user.png', fit:BoxFit.fill, color: Colors.blueGrey,),
-                   radius: 40,
-                 ),
+                    backgroundColor: Colors.white,
+                    radius: 25,
+                    child: ClipOval(
+                     child: SizedBox(
+                       width:80,
+                       height:80,
+                      child: (_image !=null)? Image.network(_image,fit:BoxFit.fill): 
+                   Image.asset('assets/user.png',fit:BoxFit.fill, color: Colors.blueGrey,),
+
+                     ),
+                    ),
+                  )
                  ),
 
                  Divider(
-                   color: Colors.white.withOpacity(0.3),
+                   color: Colors.white.withOpacity(0.9),
                    height: 64,
-                   thickness: 0.5,
+                   thickness: 0.9,
                    indent: 32,
                    endIndent: 32,
                  ),
@@ -165,15 +174,15 @@ void logout() async{
                   ),
 
                  Divider(
-                   color: Colors.white.withOpacity(0.3),
+                   color: Colors.white.withOpacity(0.9),
                    height: 64,
-                   thickness: 0.5,
+                   thickness: 0.9,
                    indent: 32,
                    endIndent: 32,
                  ),
                 MenuItem(
                   icon: Icons.help_outline, 
-                  title: 'Add Item',
+                  title: 'Add Motor',
                   onTap: (){
                     onIconpressed();
                      BlocProvider.of<NavigationBloc>(context).add(NavigationEvents.AddItemClickedEvent);
@@ -192,7 +201,7 @@ void logout() async{
                    title: 'Logout',
                    onTap: (){
                      onIconpressed();
-                     
+                     logout();
                    },
                    ),
                ]
@@ -201,23 +210,23 @@ void logout() async{
          ),
 
           Align(
-            alignment: Alignment(0, -0.9),
+            alignment: Alignment.topLeft,
             child: GestureDetector(
               onTap: (){
                 onIconpressed();
               },
             child:ClipPath(
-              clipper: CustomMenuClipper(),
+            //  clipper: CustomMenuClipper(),
          child:Container(
-            width: 30,
+            padding: isCollapsedAsync.data? EdgeInsets.fromLTRB(20, 0, 0, 15) :EdgeInsets.fromLTRB(40, 0, 0, 15),
+            width: 60,
             height: 110,
-            color: Colors.green,
             alignment: Alignment.centerLeft,
             child: AnimatedIcon(
-              color: Colors.lightGreenAccent ,
+              color: Colors.green ,
               icon:AnimatedIcons.menu_close ,
               progress: _animationController.view,
-              size: 25,
+              size: 30,
               ),
            )
           )
@@ -245,10 +254,10 @@ class CustomMenuClipper extends CustomClipper <Path>{
 
     Path path = Path();
     path.moveTo(0, 0);
-    path.quadraticBezierTo(0, 8, 10, 16);
-    path.quadraticBezierTo(width - 1, height/2 - 20, width, height);
+    path.quadraticBezierTo(0, 6, 10, 18);
+    path.quadraticBezierTo(width - 1, height/2 - 20, width, height/2);
     path.quadraticBezierTo(width + 1, height/2 + 20, 10, height - 16);
-    path.quadraticBezierTo(0, height - 8, 0, height);
+    path.quadraticBezierTo(0, height - 4, 0, height);
     path.close();
       return path;
     }

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:motorapp/pages/addItem.dart';
 
 class GoodListPage extends StatefulWidget {
 
@@ -11,37 +12,33 @@ class _GoodListPageState extends State<GoodListPage> {
 bool debugShowCheckedModeBanner = false;
 var userIdentity,item,documentId;
 int index;
-bool checkedValue1 , checkedValue2 , checkedValue3 ;
-String where1, where2, where3, isEqualto1, isEqualto2, isEqualto3, newDateTime;
+String newDateTime ;
+var isEqualto1 , isEqualto2 ;
 QuerySnapshot motorList;
 FlatButton _iconButton;
+bool isEmpty = true ;
 
-   getData() async {
-   return await FirebaseFirestore.instance.collection('motorList')
-   .where(where1 ,isEqualTo: isEqualto1)
-   .where(where2 ,isEqualTo: isEqualto2)
-   .where(where3 ,isEqualTo: isEqualto3)
+
+       getData() async {
+  await FirebaseFirestore.instance.collection('motorList')
+   .where('condition' ,isEqualTo: 'Good')
    .orderBy('locationNumber', descending: true).get();
  }
 
   @override
-  void initState(){
-    where1 = 'condition';
-    where2 = 'condition';
-    where3 = 'condition';
-    isEqualto1 = 'Good';
-    isEqualto2 = 'Good';
-    isEqualto3 ='Good';
-    getData().then((results){
+  void initState() {
+
+      setState(() {
+     isEqualto1  = 0 ;
+    isEqualto2 = 0;
+      });
+    
+   getData().then((results){
       setState(() {
         motorList = results;
+        isEmpty = motorList.docs.isEmpty;
       });
     });
-    _iconButton = FlatButton(child: null, onPressed: null);
-    checkedValue1 = false;
-     checkedValue2 = false;
-      checkedValue3 = false;
-
     super.initState();
   }
 
@@ -49,102 +46,42 @@ FlatButton _iconButton;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+          backgroundColor: Colors.white,
+           shadowColor: Colors.black12,
+            automaticallyImplyLeading: false,
+           title: Text('Good Motors List',style: TextStyle(fontSize: 20,
+           fontWeight: FontWeight.w600, color: Colors.green),),
+           centerTitle: true,
+         ),
       body: Column(
         children: [
-          SizedBox(height:10),
             Align(
               alignment: Alignment.topRight,
               child: Padding(
-                padding: EdgeInsets.only(right:10),
-                child: _filterBy(),
+                padding: EdgeInsets.symmetric(horizontal:10,),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children : [
+                    _filterbypowerRating(),
+                    SizedBox(width:10),
+                    _filterbySpeed()
+                  ]
+                ),
               ),
             ),
             SizedBox(height:10),
-           _stockList() 
+          ( isEmpty != true )? _stockList() : _stocKListIsEmpty() 
         ],
       )
           
     );           
   }
 
-// Main dropdown to filter by funtional Location
-  Widget _filterBy(){
-      List<CheckboxListTile>stockList=[
-       
-          CheckboxListTile(value: checkedValue1,
-           onChanged: (value){
-                    checkedValue1 = value;
-                    setState(() {
-                      if(value){
-                        where1 ='powerRating';
-                      }
-                    });
-          }, 
-          checkColor: Colors.green, 
-          title:Text('Power Rating'),
-          subtitle: _filterbypowerRating(),
-          ),
-         
-           CheckboxListTile(value: checkedValue2, 
-            onChanged: (value){
-                    checkedValue2 = value;
-                    setState(() {
-                      if(value){
-                        where2 ='speed';
-                      }
-                    });
-          },  
-          checkColor: Colors.green, 
-          title:Text('speed'),
-          subtitle: _filterbySpeed(),
-          ),
-    
-          CheckboxListTile(value: checkedValue3, 
-           onChanged: (value){
-                    checkedValue3 = value;
-                     setState(() {
-                      if(value){
-                       where3 ='funcLocation';
-                      }
-                    });
-          }, 
-          checkColor: Colors.green, 
-          title:Text('FuncLocation'),
-          subtitle: _filterbyFuncLocation(),
-          ),
-       
-      ];
-      
-        return new Theme(
-            data: Theme.of(context).copyWith(
-              canvasColor: Colors.green[200], // background color for the dropdown items
-              buttonTheme: ButtonTheme.of(context).copyWith(
-                alignedDropdown: true,  //If false (the default), then the dropdown's menu will be wider than its button.
-              )
-            ),
-            child: DropdownButtonHideUnderline(
-
-                child: DropdownButton(items: stockList.map((CheckboxListTile value)          
-                {
-                return new DropdownMenuItem<CheckboxListTile>(
-                   value: value,
-                   child: value,
-                     );
-                         }).toList(),
-                iconSize: 30,
-                
-                onChanged: (value){
-                },
-                isExpanded: false,
-                hint: Text('Filter by', style: TextStyle(color: Colors.black)),
-                ),
-                ),
-                );  
-  }
-
 
 // Subdropdown to filter by power Rating
   Widget _filterbypowerRating(){
+    if (motorList !=null){
       List<String>powerRatingList=[];
 
              for(int i=0; i < motorList.docs.length; i++){
@@ -172,8 +109,8 @@ FlatButton _iconButton;
                   child: new Text(value),
                      );
                          }).toList(),
-                iconSize: 15,
-                
+                iconSize: 20,
+                hint: Text('filter by powerRating', style: TextStyle(color: Colors.black)),
                 onChanged: (value){
                   setState(() {             
                        isEqualto1=value;
@@ -184,11 +121,32 @@ FlatButton _iconButton;
                 ),
                 ),
                 ); 
+    }
+    else{
+      return new Theme(
+            data: Theme.of(context).copyWith(
+              canvasColor: Colors.green[200], // background color for the dropdown items
+              buttonTheme: ButtonTheme.of(context).copyWith(
+                alignedDropdown: true,  //If false (the default), then the dropdown's menu will be wider than its button.
+              )
+            ),
+            child: DropdownButtonHideUnderline(
+
+                child: DropdownButton(items: [],
+                iconSize: 20,
+                hint: Text('filter by powerRating', style: TextStyle(color: Colors.black)),
+                onChanged: (value) {  },
+                isExpanded: false,
+                ),
+                ),
+                ); 
+    }
   }
 
 
 // Subdropdown to filter by speed
   Widget _filterbySpeed(){
+     if (motorList !=null){
       List<String>speedList=[];
              for(int i=0; i < motorList.docs.length; i++){
         
@@ -214,8 +172,8 @@ FlatButton _iconButton;
                   child: new Text(value),
                      );
                          }).toList(),
-                iconSize: 30,
-                
+                iconSize: 20,
+                 hint: Text('filter by speed', style: TextStyle(color: Colors.black)),
                 onChanged: (value){
                   setState(() {             
                        isEqualto2=value;
@@ -227,21 +185,9 @@ FlatButton _iconButton;
                 ),
                 );  
   }
-
-
-// Subdropdown to filter by funtional Location
-  Widget _filterbyFuncLocation(){
-      List<String>funcList=[];
-        for(int i=0; i < motorList.docs.length; i++){
-        
-        item = motorList.docs[i].data()["funcLocation"];
-        
-             funcList.add(
-                item.toString() 
-              );
-      }
-      
-        return new Theme(
+          
+              else{
+      return new Theme(
             data: Theme.of(context).copyWith(
               canvasColor: Colors.green[200], // background color for the dropdown items
               buttonTheme: ButtonTheme.of(context).copyWith(
@@ -250,31 +196,19 @@ FlatButton _iconButton;
             ),
             child: DropdownButtonHideUnderline(
 
-                child: DropdownButton(items: funcList.map((String value)          
-                {
-                return new DropdownMenuItem<String>(
-                   value: value,
-                  child: new Text(value),
-                     );
-                         }).toList(),
-                iconSize: 30,
-                
-                onChanged: (value){
-                  setState(() {             
-                       isEqualto3=value;
-                       print(isEqualto3);  
-                  });
-                },
+                child: DropdownButton(items: [],
+                iconSize: 20,
+                hint: Text('filter by speed', style: TextStyle(color: Colors.black)),
+                onChanged: (value) {  },
                 isExpanded: false,
                 ),
                 ),
-                );
+                ); 
+    }
   }
 
 
   Widget _stockList(){
-    if (motorList!=null){
-
       return ListView.builder(
        itemCount:motorList.docs.length ,
        padding: EdgeInsets.only(top:8) ,
@@ -410,11 +344,31 @@ FlatButton _iconButton;
       },
      
       );
-    }   
+  }
 
-    else{
-      return Text('Loading, Please wait......', textAlign: TextAlign.center,);
-    }
+   Container _stocKListIsEmpty(){
+           return Container(
+                  alignment: Alignment.center,
+                  child: Column(
+                     mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                  Text('You have no motor in record \nClick button to add', 
+                textAlign: TextAlign.center, style: TextStyle(fontSize:15),),
+
+                  SizedBox(height:10),
+                  
+              FloatingActionButton(
+       backgroundColor: Colors.white,
+          onPressed: () {
+           Navigator.of(context).pushReplacement(
+                   MaterialPageRoute(builder: (BuildContext context)=>AddItemPage()));
+          },
+          child: Icon(Icons.add, size: 30, color: Colors.orangeAccent),
+          tooltip: 'Add motor to list',
+        )
+         ]
+      ) 
+    );  
   }
 
   Row row({String text1, String text2 }) {

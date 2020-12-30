@@ -45,8 +45,8 @@ abstract class BaseAuth {
 
     final User currentUser = _firebaseAuth.currentUser;
     assert(user.uid == currentUser.uid);
-
-    return 'signInWithGoogle succeeded: $user';
+          
+    print( 'signInWithGoogle succeeded: $user');
   }
 
   

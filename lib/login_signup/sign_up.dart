@@ -5,6 +5,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:motorapp/login_signup/sign_in.dart';
 import 'package:motorapp/services/authentication.dart';
 
+
 class SignupPage extends StatefulWidget {
 
 
@@ -16,7 +17,7 @@ class SignupPageState extends State<SignupPage> {
   final BaseAuth auth= Auth();
   final formKey = GlobalKey<FormState>();
   bool _passwordVisible;
-  String _email= '', _password= '', _name='', _surname='', _portfolio='';
+  String _email= 'email', _password= '', _name='name', _surname='', _portfolio='';
   var userIdentity;
 
 
@@ -43,7 +44,7 @@ class SignupPageState extends State<SignupPage> {
       r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
   RegExp regex = new RegExp(pattern);
   if (!regex.hasMatch(value)) {
-    return 'Email format is invalid';
+    return 'email format is invalid';
   }
   
   else if (value.isEmpty){
@@ -53,6 +54,12 @@ class SignupPageState extends State<SignupPage> {
     return null;
   
 }
+
+//delay loading
+ Future <bool> checkSession() async {
+    await Future.delayed(Duration(milliseconds: 5000), (){});
+    return true;
+ }
 
 //password validator
 
@@ -78,14 +85,13 @@ String passwordValidator(String value) {
 }
 
 // loadng dialoge
-void _loadingDialog() {
-    showDialog(
+Future <void> _loadingDialog() {
+   return showDialog(
       context: context,
       builder: (BuildContext context) {
         // return object of type Dialog
         return AlertDialog(
-          backgroundColor: Colors.transparent,
-          title: new Text(""),
+          backgroundColor: Colors.white10,
           content: Container(
             height: MediaQuery.of(context).size.height*0.15,
           child:SpinKitFadingCube(
@@ -107,12 +113,15 @@ void _loadingDialog() {
         // return object of type Dialog
         return AlertDialog(
           title: new Image.asset('assets/notsuccessful.png',),
-          content: new Text(" email already exist \n kindly login to your account"),
+          content: new Text(" email already exist \n kindly login to your account",textAlign: TextAlign.center),
+          titlePadding: EdgeInsets.all(0),
+          contentPadding: EdgeInsets.all(5),
+          actionsPadding: EdgeInsets.symmetric(horizontal:20),
           actions: <Widget>[
             new FlatButton(
               child: new Text("Dismiss"),
               onPressed: () {             
-                Navigator.of(context).pop();
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context)=>SignupPage()));
               },
             ),
           ],
@@ -129,14 +138,18 @@ void _loadingDialog() {
         // return object of type Dialog
         return AlertDialog(
           title: new Image.asset('assets/successful.png',),
-          content: new Text("Kindly verify your account \n Link to verify account has been sent to your email"),
+          content: new Text("Kindly verify your account \nLink to verify account has been sent to your email",
+          textAlign: TextAlign.center),
+          titlePadding: EdgeInsets.all(0),
+          contentPadding: EdgeInsets.all(5),
+          actionsPadding: EdgeInsets.symmetric(horizontal:20),
           actions: <Widget>[
             new FlatButton(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
               color: Colors.green,
               child: new Text("goto LOGIN", style: TextStyle(color:Colors.white, fontSize:15),),
               onPressed: () {             
-               Navigator.of(context).pushReplacement(
+               Navigator.pushReplacement(context,
     MaterialPageRoute(builder: (BuildContext context)=>SigninPage())
   );
               },
@@ -146,12 +159,6 @@ void _loadingDialog() {
       },
     );
   }
-
-//to delay the loading befor next ation
- Future <bool> checkSession() async {
-    await Future.delayed(Duration(milliseconds: 5000), (){});
-    return true;
- }
 
 //validate all conditions in the form 
 bool validate(){
@@ -170,18 +177,18 @@ bool validate(){
   //Create user
 if (validate()){
   _loadingDialog();
+      checkSession().then((value) {
      auth.signUp(_email, _password).then((value) async {
           if(value != null){
                 User user = FirebaseAuth.instance.currentUser;
-                user.sendEmailVerification();
+                user.updateProfile(displayName: _name).then((value) => user.sendEmailVerification());
                 print('Signed up user: $value');
+                
               userIdentity= value.user.uid;
                print('Signed up user: $userIdentity');
-             checkSession().then((value){  
              FirebaseFirestore.instance.collection('users').doc(userIdentity)
              .set({'name':_name,'surname':_surname,'email':_email,'password':_password, 'portfolio': _portfolio});
               _showVerifyEmailSentDialog();
-});
           }
     }).catchError((msg) {
       if (msg.code == 'weak-password') {
@@ -192,6 +199,7 @@ if (validate()){
        _useralreadyexistDialog();  
   }
     }); 
+    });
  }
   }
 
@@ -204,6 +212,7 @@ if (validate()){
   Widget build(BuildContext context) {
   
   return Scaffold(
+    backgroundColor: Colors.white,
     body: LayoutBuilder(
       builder: (ctx, constrains){
         return Scaffold(
@@ -216,12 +225,12 @@ if (validate()){
                     child: Column(
                         children: [
                           Container(
-                            height: MediaQuery.of(context).size.height*0.35,
+                            height: MediaQuery.of(context).size.height*0.3,
                             width: MediaQuery.of(context).size.width,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5) , bottomRight: Radius.circular(5))
                             ),
-                            child: Image.asset('assest/olamimage.png', height: MediaQuery.of(context).size.height*0.35,
+                            child: Image.asset('assets/olamimage.png', height: MediaQuery.of(context).size.height*0.3,
                               width: MediaQuery.of(context).size.width,
                              ),
 
@@ -230,17 +239,28 @@ if (validate()){
                           SizedBox( height:10,),
 
                         Expanded(
-                          child:Container(
-                            color: Colors.white,
-                          child: Padding(padding: EdgeInsets.symmetric(horizontal: 10),
+                         child:Container(
+                          color: Colors.white,
+                          child: Padding(padding: EdgeInsets.symmetric(horizontal: 15),
                           child: Column(
                             children: [
-                              Text('Create Account', style: TextStyle( fontSize: 20, fontWeight:FontWeight.w200, color: Colors.green)),
+                              Align(
+                              alignment: Alignment.topLeft,
+                              child:Text('Create Account', style: TextStyle( fontSize: 30, fontWeight:FontWeight.w600, color: Colors.green),
+                              textAlign:TextAlign.left
+                              )
+                              ),
+
                               SizedBox( height:10,),
-                              Text('Making work easier, faster and smarter. No stress, No fuzz', style: TextStyle( fontSize:10,
-                              color: Colors.black)),
+
+                              Align(
+                              alignment: Alignment.topLeft,
+                              child:Text('Making work easier, faster and smarter. No stress, No fuzz', style: TextStyle( fontSize:13,
+                              color: Colors.black),textAlign:TextAlign.left),
+                              ),
+                              
                             
-                              SizedBox( height:15,),
+                              SizedBox( height:10,),
 
                                Form(key:formKey,
                
@@ -250,7 +270,7 @@ if (validate()){
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                     children: [
-                                    container(
+                                    details(
                                        TextFormField(
                                         decoration: buildSignupInputDecoration(
                                           Icon(null),
@@ -265,17 +285,17 @@ if (validate()){
                                         )     
                                     ),
 
-                                    container(
+                                    details(
                                       TextFormField(
                                         decoration: buildSignupInputDecoration(
                                           Icon(null),
-                                          'name',
+                                          _name,
                                           // ignore: missing_required_param
                                           IconButton(icon: Icon(null))
                                         ),
                                         validator: nameValidator,
                                         onSaved: (value) {
-                                       return _portfolio = value;
+                                       return _name = value;
                                        }
                                         )                            
                                     )
@@ -293,7 +313,7 @@ if (validate()){
                                         ),
                                         validator: nameValidator,
                                         onSaved: (value) {
-                                       return _name = value;
+                                       return _portfolio= value;
                                        }
                                         )                            
                                     ),
@@ -303,8 +323,8 @@ if (validate()){
                                   container(
                              TextFormField(
                                         decoration: buildSignupInputDecoration(
-                                          Icon(Icons.mail, color: Colors.grey,),
-                                          'email',
+                                          Icon(Icons.mail, color: Colors.green,),
+                                          _email,
                                           // ignore: missing_required_param
                                           IconButton(icon: Icon(null))
                                         ),
@@ -348,18 +368,7 @@ if (validate()){
 
                               SizedBox(height:20) ,
 
-                              FlatButton(onPressed:(){
-                                auth.signInWithGoogle();
-                              }, 
-                        child: Row(
-                               mainAxisAlignment: MainAxisAlignment.center,
-                           children: [
-                             Text('Sign in with Google', style: TextStyle( color:Colors.black, fontSize:15),),
-                                 SizedBox(width: 5,),
-                             Image.asset('assets/google.png',)
-                        ],)
-
-                  ),           
+                              
                             ]    
                            ),
                          ),
@@ -368,19 +377,43 @@ if (validate()){
                           )
                           )
                           
-                          )
+                          ),
                         ),
         
 
-             BottomAppBar(
-             
-                child: Row(
+                  Align(
+                      alignment: Alignment.bottomCenter,
+                child: Column(
+                  children: [
+                        Container(
+                          color: Colors.white,
+                             padding:EdgeInsets.fromLTRB(20,0,20,10),
+                              child:FlatButton(onPressed:(){
+                                 _loadingDialog();
+                                            auth.signInWithGoogle().then((value) { 
+                                              User user = FirebaseAuth.instance.currentUser;
+                                               _email = user.email.toString();
+                                               _name = user.displayName.toString();
+                                          
+                                            });
+                                  } ,
+                        child: Row(
+                               mainAxisAlignment: MainAxisAlignment.center,
+                           children: [
+                             Text('Sign in with Google', style: TextStyle( color:Colors.black, fontSize:15),),
+                                 SizedBox(width: 5,),
+                             Image.asset('assets/google.png', height:15,)
+                        ],)
+                              )
+                  ), 
+                         
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children:[
                        Container(
                      
                      alignment: Alignment.bottomLeft,
-                height:  MediaQuery.of(context).size.height*0.15,
+                height:  MediaQuery.of(context).size.height*0.12,
                 width:  MediaQuery.of(context).size.width*0.5,
                 child: FlatButton(
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
@@ -440,6 +473,8 @@ if (validate()){
 
                   ]  
                 ),
+                  ]
+                )
               ), 
 
                         ],
@@ -464,7 +499,7 @@ return InputDecoration(
       suffixIcon: suffixIcon,
      hintText: hint,
      hintStyle: TextStyle( 
-     fontSize: 10,
+     fontSize: 15,
       fontFamily: 'Montserrat',
       color: Colors.grey,
       ),     
@@ -475,13 +510,34 @@ return InputDecoration(
 
 Container container (TextFormField child){
 return Container(
-                child: Material(
-                  borderRadius: BorderRadius.circular(5),
-                  shadowColor: Colors.grey,
-                  color: Colors.white,
-                  elevation: 2.0,
-                  child: child,
-                    )
+          margin: EdgeInsets.symmetric(horizontal:10),
+          width:MediaQuery.of(context).size.width,
+          height: 50,
+          decoration: BoxDecoration(
+            color:Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow:[
+              BoxShadow(color: Colors.black12,   blurRadius: 4),
+            
+            ]
+          ),
+                child: child
+              );
+}
+
+Container details (TextFormField child){
+return Container(
+          width:150,
+          height: 50,
+          decoration: BoxDecoration(
+            color:Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow:[
+              BoxShadow(color: Colors.black12,   blurRadius: 4),
+            
+            ]
+          ),
+                child: child
               );
 }
 

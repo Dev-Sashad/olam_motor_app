@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:motorapp/bloc.navigation_bloc/navigation_bloc.dart';
-import 'package:motorapp/homepage/mainhomepage.dart';
+import 'package:motorapp/homepage/dashboard.dart';
 
 
 class  AddItemPage extends StatefulWidget with NavigationStates{  
@@ -15,7 +15,8 @@ class AddItemPageState extends State<AddItemPage> {
 final formKey = GlobalKey<FormState>();
 int  powerRating, currentRating, speed;
 int _groupValue = -1;
-String mountPost, gearboxInc, funcLocation, condition, locationNumber, modelNumber, bearingNumber;
+String mountPost, gearboxInc, funcLocation, condition, locationNumber, modelNumber, bearingNumber,
+ functionalLoc = 'Functional Location';
 QuerySnapshot motorList;
 
 
@@ -74,7 +75,10 @@ String digitValidator(String value) {
         // return object of type Dialog
         return AlertDialog(
           title: new Image.asset('assets/successful.png',),
-          content: new Text("Motor successfully added \n Thank you", textAlign:TextAlign.center ,),
+          titlePadding: EdgeInsets.zero,
+          contentPadding: EdgeInsets.all(5),
+          actionsPadding: EdgeInsets.symmetric(horizontal:20),
+          content: new Text("Motor successfully added \nThank you", textAlign:TextAlign.center ,),
           actions: <Widget>[
             flatbutton(
             FlatButton(
@@ -82,7 +86,7 @@ String digitValidator(String value) {
               onPressed: () {             
                //authFormType = AuthFormType.signIn;
               Navigator.of(context).pushReplacement(
-    MaterialPageRoute(builder: (BuildContext context)=>MainHomepage())
+    MaterialPageRoute(builder: (BuildContext context)=>DashBoardPage())
   );
                // loading=false;
               },
@@ -94,15 +98,20 @@ String digitValidator(String value) {
     );
   }
 
+  //delay loading
+ Future <bool> checkSession() async {
+    await Future.delayed(Duration(milliseconds: 5000), (){});
+    return true;
+ }
+
  // loadng dialoge
-void _loadingDialog() {
-    showDialog(
+Future <void> _loadingDialog() {
+   return showDialog(
       context: context,
       builder: (BuildContext context) {
         // return object of type Dialog
         return AlertDialog(
-          backgroundColor: Colors.transparent,
-          title: new Text(""),
+          backgroundColor: Colors.white10,
           content: Container(
             height: MediaQuery.of(context).size.height*0.15,
           child:SpinKitFadingCube(
@@ -116,11 +125,6 @@ void _loadingDialog() {
     );
   }
 
-  //to delay the loading befor next ation
- Future <bool> checkSession() async {
-    await Future.delayed(Duration(milliseconds: 5000), (){});
-    return true;
- }
 
 void _motorNotSucessfullyChanged() {
     showDialog(
@@ -129,7 +133,10 @@ void _motorNotSucessfullyChanged() {
         // return object of type Dialog
         return AlertDialog(
           title: new Image.asset('assets/notsuccessful.png',),
-          content: new Text("Motor not succesfully added"),
+          content: new Text("Motor not succesfully added",textAlign: TextAlign.center),
+          titlePadding: EdgeInsets.zero,
+          contentPadding: EdgeInsets.all(5),
+          actionsPadding: EdgeInsets.symmetric(horizontal:20),
           actions: <Widget>[
              flatbutton(
             FlatButton(
@@ -177,11 +184,12 @@ void _motorExist() {
   Widget build(BuildContext context) {
    return Scaffold(
           appBar: AppBar(
-        
-        backgroundColor: Colors.green,
+        automaticallyImplyLeading: false,
+           shadowColor: Colors.black12,
+        backgroundColor: Colors.white,
         title: 
           Text('Add Motor',textAlign:TextAlign.center, 
-          style:TextStyle(color: Colors.white, fontSize:25),),
+          style:TextStyle(color: Colors.green, fontSize:25),),
         centerTitle: true,
       ),
 
@@ -192,7 +200,7 @@ void _motorExist() {
         height: constrains.maxHeight,
         child:SingleChildScrollView(
          child: Container(
-                    height: MediaQuery.of(context).size.height,
+                  
                     width: MediaQuery.of(context).size.width,
       
      child: Column(
@@ -200,10 +208,10 @@ void _motorExist() {
           
         Form(key:formKey,
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
 
-           SizedBox(height:50),
-
+            SizedBox(height:20),
           container(
             hintText:'Power rating',
             unit:'KW',
@@ -230,19 +238,21 @@ void _motorExist() {
 
             textFormField(
             hintText:'Model Number',
-            input: modelNumber
+            input: modelNumber,
+             unit: ''
           ),
 
           SizedBox(height:10),
 
-          Row(
+            Padding(
+          padding: EdgeInsets.only(left:25),
+          child: Column(
+             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Mounting Position', style: TextStyle(fontSize:20,)),
+              Text('Mounting Position', style: TextStyle(fontSize:20,fontWeight:FontWeight.bold, color: Colors.green)),
 
               SizedBox(width: 15,),
-
-               Row(
-                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                Row(
     children: <Widget>[
       _myRadioButton(
         title: "Foot",
@@ -257,6 +267,7 @@ void _motorExist() {
     ],
   )
             ],
+          )
           ),
 
           
@@ -264,73 +275,81 @@ void _motorExist() {
 
             textFormField(
             hintText:'Bearing Number',
-            input: bearingNumber
+            input: bearingNumber,
+            unit: ''
           ),
 
         SizedBox(height:10),
 
-          Row(
+         Padding(
+          padding: EdgeInsets.only(left:25),
+          child: Column(
+             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Gearbox Inclusion', style: TextStyle(fontSize:20,)),
+              Text('Gearbox Inclusion', style: TextStyle(fontSize:20,fontWeight:FontWeight.bold, color: Colors.green)),
 
               SizedBox(width: 15,),
-
-               Row(
-                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-    children: <Widget>[
-      _myRadioButton(
+            Row(
+            children: [
+                _myRadioButton(
         title: "Yes",
-        value: 0,
+        value: 2,
         mtpost: gearboxInc,
       ),
       _myRadioButton(
         title: "NO",
-        value: 1,
+        value: 3,
         mtpost: gearboxInc,
       ),
-    ],
-  ),
+            ]
+            )
+    
             ],
+          )
           ),
-
-           SizedBox(height:10),
+         
+   SizedBox(height:10),
 
             textFormFieldWithDropdownButton(
-            hintText:'Functional Location',
-            input: funcLocation
+            hintText: functionalLoc,
+            input: funcLocation,
+            suffixWidget: _listView()
           ),
 
-       SizedBox(height:10),
-
-          Row(
+             SizedBox(width: 15,),
+        Padding(
+          padding: EdgeInsets.fromLTRB(25, 15, 0, 0),
+          child:Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Condition', style: TextStyle(fontSize:20,)),
-
-              SizedBox(width: 15,),
-
-               Row(
-                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-    children: <Widget>[
+              Text('Condition', style: TextStyle(fontSize:20, fontWeight:FontWeight.bold, color: Colors.green)),
+          
+          Row(  
+            children: [   
       _myRadioButton(
         title: "Good",
-        value: 0,
+        value: 4,
         mtpost: condition,
       ),
+
       _myRadioButton(
         title: "Bad",
-        value: 1,
+        value: 5,
         mtpost: condition,
       ),
-    ],
-  ),
+
+            ]
+          )    
             ],
+          )
           ),
 
           SizedBox(height:10),
 
           textFormField(
             hintText:'Location in motor room i.e M(1,x)',
-            input: locationNumber
+            input: locationNumber,
+             unit: ''
           ),
 
         ]
@@ -342,8 +361,8 @@ void _motorExist() {
             flatbutton(
              FlatButton(onPressed:() {
               if(validate()){
-                    _loadingDialog();
-                  checkSession().then((value) async { 
+                   _loadingDialog();
+                    checkSession().then((value) async {
                 if (powerRating !=null && currentRating !=null && speed !=null && modelNumber !=null
                  && mountPost !=null && bearingNumber !=null && gearboxInc !=null && funcLocation !=null
                   && condition !=null && locationNumber !=null ){ 
@@ -380,12 +399,10 @@ void _motorExist() {
                  else {
                       _motorNotSucessfullyChanged();
                    }
-
               });
-              }
-
-         
+              }    
         },
+
       child: Text('Add Motor', style: TextStyle(fontSize:20, color:Colors.white),)
       )
             )
@@ -400,7 +417,7 @@ void _motorExist() {
    );
   }
   
-  InputDecoration buildSignupInputDecoration(  String hint) {
+  InputDecoration buildSignupInputDecoration(  String hint, String suffixText) {
 return InputDecoration(
      hintText: hint,
      hintStyle: TextStyle( 
@@ -408,6 +425,36 @@ return InputDecoration(
       fontFamily: 'Montserrat',
       color: Colors.grey,
       ),     
+      suffixText: suffixText,
+      border: InputBorder.none,
+      contentPadding: EdgeInsets.only(left:10)
+      );
+
+}
+
+ InputDecoration buildInputDecoration(  String hint) {
+return InputDecoration(
+     hintText: hint,
+     hintStyle: TextStyle( 
+     fontSize: 15,
+      fontFamily: 'Montserrat',
+      color: Colors.grey,
+      ), 
+      border: InputBorder.none,
+      contentPadding: EdgeInsets.only(left:10)
+      );
+
+}
+
+ InputDecoration inputDecoration(  String hint, Widget suffixWidget) {
+return InputDecoration(
+     hintText: hint,
+     hintStyle: TextStyle( 
+     fontSize:  15,
+      fontFamily: 'Montserrat',
+      color: Colors.grey,
+      ), 
+      suffix: suffixWidget,
       border: InputBorder.none,
       contentPadding: EdgeInsets.only(left:10)
       );
@@ -416,15 +463,19 @@ return InputDecoration(
 
 Container container ({String hintText, String unit, var input}){
 return Container(
-        margin: EdgeInsets.symmetric(horizontal:20),
-                child: Material(
-                  borderRadius: BorderRadius.circular(5),
-                  shadowColor: Colors.grey,
-                  color: Colors.white,
-                  elevation: 2.0,
-                  child: Row(
-              children: [
-                 TextFormField(decoration: buildSignupInputDecoration(hintText),
+  height:40,
+  width: MediaQuery.of(context).size.width*0.85,
+   decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color:Colors.black12,
+              blurRadius: 4
+            )
+          ],
+          color:Colors.white
+        ),
+          child: TextFormField(decoration: buildSignupInputDecoration(hintText, unit),
           keyboardType: TextInputType.number,
           style: TextStyle(fontSize:20, color:Colors.grey, fontWeight:FontWeight.w600),
           onChanged: (value){
@@ -435,23 +486,24 @@ return Container(
           
           validator: digitValidator,
           ),
-          SizedBox(width:5),
-              Text(unit,style:TextStyle(color: Colors.grey, fontSize: 20, fontWeight: FontWeight.w600))
-              ],
-            ),
-                    )
               );
 }
 
-Container textFormField ({String hintText, var input}){
+Container textFormField ({String hintText, String unit, var input}){
 return Container(
-        margin: EdgeInsets.symmetric(horizontal:20),
-                child: Material(
-                  borderRadius: BorderRadius.circular(5),
-                  shadowColor: Colors.grey,
-                  color: Colors.white,
-                  elevation: 2.0,
-                  child:  TextFormField(decoration: buildSignupInputDecoration(hintText),
+        height:40,
+        width: MediaQuery.of(context).size.width*0.85,
+         decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color:Colors.black12,
+              blurRadius: 4
+            )
+          ],
+          color:Colors.white
+        ),
+          child:  TextFormField(decoration: buildInputDecoration(hintText),
           keyboardType: TextInputType.number,
           style: TextStyle(fontSize:20, color:Colors.grey, fontWeight:FontWeight.w600),
           onChanged: (value){
@@ -462,16 +514,17 @@ return Container(
           
           validator: validator,
           ),
-              )
+              
               );
 }
 
 Container flatbutton (FlatButton child){
 return Container(
-  width: MediaQuery.of(context).size.width*0.6,
-  margin: EdgeInsets.symmetric(horizontal:20),
+  height: 40,
+  width: 200,
+  margin: EdgeInsets.only(bottom:20),
                 child: Material(
-                  borderRadius: BorderRadius.circular(5),
+                  borderRadius: BorderRadius.circular(10),
                   shadowColor: Colors.grey,
                   color: Colors.green,
                   elevation: 2.0,
@@ -480,8 +533,9 @@ return Container(
               );
 }
 
-Widget _myRadioButton({String title, int value, String mtpost}) {
-  return RadioListTile(
+Expanded _myRadioButton({String title, int value, String mtpost}) {
+  return Expanded(
+  child: RadioListTile(
     activeColor: Colors.green,
     value: value,
     groupValue: _groupValue,
@@ -493,6 +547,7 @@ Widget _myRadioButton({String title, int value, String mtpost}) {
       
     },
     title: Text(title),
+  )
   );
 }
 
@@ -520,7 +575,9 @@ Widget _listView({String  selectedItem}){
                 onChanged: (value){
                   setState(() {             
                        selectedItem=value;
-                       print(selectedItem);  
+                       print(selectedItem);
+                       functionalLoc = selectedItem;
+                       funcLocation = selectedItem;
                   });
                 },
                 isExpanded: false,
@@ -530,19 +587,23 @@ Widget _listView({String  selectedItem}){
     
   }
 
-  Container textFormFieldWithDropdownButton ({String hintText, String input}){
+  Container textFormFieldWithDropdownButton ({String hintText, String input, Widget suffixWidget}){
 return Container(
+  height: 40,
+  width: MediaQuery.of(context).size.width*0.85,
         margin: EdgeInsets.symmetric(horizontal:20),
-                child: Material(
-                  borderRadius: BorderRadius.circular(5),
-                  shadowColor: Colors.grey,
-                  color: Colors.white,
-                  elevation: 2.0,
-                  child: Row(
-                    mainAxisAlignment:MainAxisAlignment.spaceBetween,
-                    children: [
-          TextFormField(decoration: buildSignupInputDecoration(hintText),
-          keyboardType: TextInputType.number,
+          decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color:Colors.black12,
+              blurRadius: 4
+            )
+          ],
+          color:Colors.white
+        ),
+     
+          child: TextFormField(decoration: inputDecoration(hintText, suffixWidget),
           style: TextStyle(fontSize:20, color:Colors.grey, fontWeight:FontWeight.w600),
           onChanged: (value){
             setState(() {
@@ -553,12 +614,6 @@ return Container(
           validator: validator,
           ),
 
-          _listView(
-            selectedItem: input
-          )
-                    ]
-                  )
-              )
-              );
+        );
 }
 }

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:motorapp/mainhomepagetabs/motorDetails.dart';
+import 'package:motorapp/homepage/motorDetails.dart';
+import 'package:motorapp/pages/addItem.dart';
 
 
 class TotalListPage extends StatefulWidget {
@@ -15,6 +16,7 @@ var userIdentity,documentId, query;
 QuerySnapshot motorList;
 IconButton _iconButton;
 String arrayContains;
+bool isEmpty = true ;
 
    getData() async {
    query = await FirebaseFirestore.instance.collection('motorList')
@@ -27,21 +29,33 @@ String arrayContains;
     getData().then((results){
       setState(() {
         motorList = results;
+        isEmpty = motorList.docs.isEmpty;
       });
     });
-    _iconButton = IconButton(icon: null, onPressed: null);
+   // _iconButton = IconButton(icon: null, onPressed: null);
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+          backgroundColor: Colors.white,
+           shadowColor: Colors.black12,
+            automaticallyImplyLeading: false,
+           title: Text('All Motor List',style: TextStyle(fontSize: 20,
+           fontWeight: FontWeight.w600, color: Colors.green),),
+           centerTitle: true,
+         ),
       body: Column(
         children:[
-              container(
+              (isEmpty != true)? Align(
+                alignment: Alignment.topCenter,
+              child:container(
                 TextFormField(
                   decoration: buildSignupInputDecoration(
-                    hint: 'seacrch by motor model number',
+                    hint: 'search by motor model number',
                     icon: IconButton(
                       
                     icon: Icon(Icons.search),
@@ -63,24 +77,26 @@ String arrayContains;
                   style: TextStyle(fontSize: 20, color:Colors.grey, fontWeight: FontWeight.w600),
                 )
                 ),
+                ) : Text(' '), 
 
-             Align(
-                alignment: Alignment.topLeft,
-                child: Text('Click info button for more details and editing',
+                   SizedBox(height:5),
+           /// Align(
+             //   alignment: Alignment.topLeft,
+               // child:
+                (isEmpty != true)? Text('Click info button for more details and editing',
                 style:TextStyle( color:Colors.grey, fontSize:15),
-                ),
-              ),
+                textAlign: TextAlign.center,
+                ) : Text(' '), 
+             // ),
 
                 SizedBox(height:5),
-        _stockList()  
+              (isEmpty != true)? _stockList() : _stocKListIsEmpty()  
         ]
       )    
     );           
   }
 
-  Widget _stockList(){
-    if (motorList!=null){
-        
+  Widget _stockList(){      
       return ListView.builder(
        itemCount:motorList.docs.length ,
        padding: EdgeInsets.only(top:8) ,
@@ -208,13 +224,33 @@ String arrayContains;
       },
      
       );
-    }
 
-     
+  }
 
-    else{
-      return Text('Loading, Please wait......', textAlign: TextAlign.center,);
-    }
+
+  Container _stocKListIsEmpty(){
+           return Container(
+                  alignment: Alignment.center,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                  Text('You have no motor in record \nClick button to add', 
+                textAlign: TextAlign.center, style: TextStyle(fontSize:15),),
+
+                  SizedBox(height:10),
+                  
+              FloatingActionButton(
+       backgroundColor: Colors.white,
+          onPressed: () {
+           Navigator.of(context).pushReplacement(
+                   MaterialPageRoute(builder: (BuildContext context)=>AddItemPage()));
+          },
+          child: Icon(Icons.add, size: 30, color: Colors.orangeAccent),
+          tooltip: 'Add motor to list',
+        )
+         ]
+      ) 
+    );  
   }
 
   Row row({String text1, String text2 }) {
@@ -235,18 +271,21 @@ return InputDecoration(
      suffixIcon: icon,
      hintText: hint,
      hintStyle: TextStyle( 
-     fontSize: 10,
+     fontSize: 15,
      fontFamily: 'Montserrat',
       color: Colors.grey,
       ),     
-      border: InputBorder.none
+      border: InputBorder.none,
+  contentPadding: EdgeInsets.fromLTRB(20, 10,0, 10),
       );
 
 }
 
 Container container (TextFormField child){
 return Container(
-        margin: EdgeInsets.symmetric(horizontal:15, vertical: 5),
+        alignment: Alignment.center,
+        width: MediaQuery.of(context).size.width*0.7,
+        margin: EdgeInsets.symmetric(horizontal:10, vertical: 5),
                 child: Material(
                   borderRadius: BorderRadius.circular(5),
                   shadowColor: Colors.grey,

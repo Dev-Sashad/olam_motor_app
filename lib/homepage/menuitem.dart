@@ -17,8 +17,8 @@ const MenuItem ({Key key, this.icon, this.title, this.onTap}) : super(key : key)
         child: Row(children: [
             Icon(
               icon,
-              color: Colors.lightGreen,
-              size: 30,
+              color: Colors.lightGreen[100],
+              size: 25,
             ),
 
             SizedBox(width:20),
@@ -26,7 +26,7 @@ const MenuItem ({Key key, this.icon, this.title, this.onTap}) : super(key : key)
             Text(
               title,
 
-              style: TextStyle(fontWeight:FontWeight.w300, fontSize:26, color:Colors.white),
+              style: TextStyle(fontWeight:FontWeight.w300, fontSize:22, color:Colors.white),
             )
 
         ],),

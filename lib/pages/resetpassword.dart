@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:motorapp/bloc.navigation_bloc/navigation_bloc.dart';
-import 'package:motorapp/homepage/mainhomepage.dart';
+
 
 
 class ResetPasswordpage extends StatefulWidget with NavigationStates {  
@@ -58,18 +59,17 @@ String passwordValidator(String value) {
       builder: (BuildContext context) {
         // return object of type Dialog
         return AlertDialog(
-          title: new Image.asset('assets/successful.png',),
-          content: new Text("Password successfully changed \n Thank you"),
+          title: new Image.asset('assets/successful.png', height:80 , width:80),
+          content: new Text("Password successfully changed \nThank you",textAlign: TextAlign.center),
+          titlePadding: EdgeInsets.all(0),
+          contentPadding: EdgeInsets.all(5),
+          actionsPadding: EdgeInsets.symmetric(horizontal:20),
           actions: <Widget>[
             flatbutton(
             FlatButton(
               child: new Text("Go to Homepage", style: TextStyle(fontSize:20, color:Colors.white),),
               onPressed: () {             
-               //authFormType = AuthFormType.signIn;
-              Navigator.of(context).pushReplacement(
-    MaterialPageRoute(builder: (BuildContext context)=>MainHomepage())
-  );
-               // loading=false;
+                  Navigator.pop(context);
               },
             ),
             )
@@ -79,15 +79,20 @@ String passwordValidator(String value) {
     );
   }
 
+//delay loading
+ Future <bool> checkSession() async {
+    await Future.delayed(Duration(milliseconds: 5000), (){});
+    return true;
+ }
+
  // loadng dialoge
-void _loadingDialog() {
-    showDialog(
+Future <void> _loadingDialog() {
+   return showDialog(
       context: context,
       builder: (BuildContext context) {
         // return object of type Dialog
         return AlertDialog(
-          backgroundColor: Colors.transparent,
-          title: new Text(""),
+          backgroundColor: Colors.white10,
           content: Container(
             height: MediaQuery.of(context).size.height*0.15,
           child:SpinKitFadingCube(
@@ -101,11 +106,7 @@ void _loadingDialog() {
     );
   }
 
-  //to delay the loading befor next ation
- Future <bool> checkSession() async {
-    await Future.delayed(Duration(milliseconds: 5000), (){});
-    return true;
- }
+
 
 void _passwordNotSucessfullyChanged() {
     showDialog(
@@ -113,15 +114,18 @@ void _passwordNotSucessfullyChanged() {
       builder: (BuildContext context) {
         // return object of type Dialog
         return AlertDialog(
-          title: new Image.asset('assets/notsuccessful.png',),
-          content: new Text("Wrong old password"),
+          title: new Image.asset('assets/notsuccessful.png',height:80 , width:80),
+          content: new Text("Wrong old password",textAlign: TextAlign.center),
+          titlePadding: EdgeInsets.all(0),
+          contentPadding: EdgeInsets.all(5),
+          actionsPadding: EdgeInsets.symmetric(horizontal:20),
           actions: <Widget>[
              flatbutton(
             FlatButton(
               child: new Text("Dismiss", style: TextStyle(fontSize:20, color:Colors.white),),
               onPressed: () {             
                //authFormType = AuthFormType.signIn;
-              Navigator.of(context).pop();
+               Navigator.pop(context);
                // loading=false;
               },
             ),
@@ -155,11 +159,12 @@ void initState()  {
   Widget build(BuildContext context) {
    return Scaffold(
           appBar: AppBar(
-        
-        backgroundColor: Colors.green,
+          automaticallyImplyLeading: false,
+           shadowColor: Colors.black12,
+        backgroundColor: Colors.white,
         title: 
           Text('Change Password',textAlign:TextAlign.center, 
-          style:TextStyle(color: Colors.white, fontSize:25),),
+          style:TextStyle(color: Colors.green, fontSize:25),),
         centerTitle: true,
       ),
 
@@ -212,7 +217,7 @@ void initState()  {
              FlatButton(onPressed:() {
               if(validate()){
                     _loadingDialog();
-                  checkSession().then((value) async { 
+                checkSession().then((value) async {
             if(getoldPassword != oldPassword){
               _passwordNotSucessfullyChanged();
             }
@@ -226,13 +231,13 @@ void initState()  {
                 });    
             });
                await FirebaseAuth.instance.currentUser.updatePassword(newPassword).then((value){
+                  BlocProvider.of<NavigationBloc>(context).add(NavigationEvents.ResetPasswordClickedEvent);
                       _passwordSucessfullyChanged();  
                 });                
            
             }
-              }
-                  );
-              }
+              });
+              }          
         },
       child: Text('Change Password', style: TextStyle(fontSize:20, color:Colors.white),)
       )
@@ -252,10 +257,11 @@ void initState()  {
 return InputDecoration(
      hintText: hint,
      hintStyle: TextStyle( 
-     fontSize: 10,
+     fontSize: 17,
       fontFamily: 'Montserrat',
       color: Colors.grey,
-      ),     
+      ), 
+      contentPadding: EdgeInsets.symmetric(horizontal:20),   
       border: InputBorder.none
       );
 
@@ -263,7 +269,9 @@ return InputDecoration(
 
 Container container (TextFormField child){
 return Container(
+  height: 50,
         margin: EdgeInsets.symmetric(horizontal:20),
+     //   padding: EdgeInsets.symmetric(horizontal:20),
                 child: Material(
                   borderRadius: BorderRadius.circular(5),
                   shadowColor: Colors.grey,

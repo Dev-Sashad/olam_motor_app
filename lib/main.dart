@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';  
@@ -9,19 +11,22 @@ import 'login_signup/firstpage.dart';
 void main() async {
 WidgetsFlutterBinding.ensureInitialized();
  await Firebase.initializeApp();
- return runApp(MyApp());
+ Timer(Duration (seconds: 4 ), (){
+ return runApp(MyApp()
+ );
+ });
 }
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application. 
   @override
-  Widget build(BuildContext context) {
+ Widget build(BuildContext context) {
 
-    return MaterialApp(
-     debugShowCheckedModeBanner: false,
-      home: MainPage()
-    );
-  }
+   return MaterialApp(
+    debugShowCheckedModeBanner: false,
+     home: MainPage()
+  );
+ }
 
 }
 
@@ -54,18 +59,18 @@ class _MainPageState extends State<MainPage> {
   }
 
   Future <bool> checkSession() async {
-    await Future.delayed(Duration(milliseconds: 8000), (){});
+    await Future.delayed(Duration(milliseconds: 5000), (){});
     return true;
   }
 
 void _navigatetoFirstPage(){
-  Navigator.of(context).pushReplacement(
+  Navigator.pushReplacement(context,
     MaterialPageRoute(builder: (BuildContext context)=>FirstPage())
   );
 }
 
 void _navigatetoResignin(){
-  Navigator.of(context).pushReplacement(
+  Navigator.pushReplacement(context,
     MaterialPageRoute(builder: (BuildContext context)=>ResigninPage())
   );
 }
@@ -83,27 +88,34 @@ void _navigatetoResignin(){
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset('assets/olam.png',
-            height: MediaQuery.of(context).size.height*0.2,),
+            height: MediaQuery.of(context).size.height*0.3,
+            width: MediaQuery.of(context).size.width*0.4,
+            ),
 
-            SizedBox(width: 20),
-
-            Shimmer.fromColors(child:Text('OLAM',style: TextStyle(
-                      fontSize:50 , fontFamily: 'Pacifico', fontWeight: FontWeight.w700), ),
-                       baseColor: Colors.green[600],
-                        highlightColor: Colors.greenAccent[100] ),
         ],),
 
         SizedBox(height: 20),
 
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
               children:[
+
+            Shimmer.fromColors(child:Text('OLAM',style: TextStyle(
+                      fontSize:40 , fontFamily: 'Pacifico', fontWeight: FontWeight.w700), ),
+                       baseColor: Colors.green[600],
+                        highlightColor: Colors.greenAccent[100] ),
+                  
+                 SizedBox(width: 5),
+
            Shimmer.fromColors(child:Text('MOTOR',style: TextStyle(
-                      fontSize:30 , fontFamily: 'Pacifico', fontWeight: FontWeight.w700),),
+                      fontSize:40 , fontFamily: 'Pacifico', fontWeight: FontWeight.w700),),
                        baseColor: Colors.green[600],
                         highlightColor: Colors.greenAccent[100]),
 
+                   SizedBox(width: 5),
+
           Shimmer.fromColors(child:Text('APP',style: TextStyle(
-                      fontSize:30 , fontFamily: 'Pacifico', fontWeight: FontWeight.w700), ),
+                      fontSize:40 , fontFamily: 'Pacifico', fontWeight: FontWeight.w700), ),
                        baseColor: Colors.green,
                         highlightColor: Colors.greenAccent[100] ),
 

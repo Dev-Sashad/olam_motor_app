@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:motorapp/pages/addItem.dart';
 class BadListPage extends StatefulWidget {
 
   @override
@@ -11,6 +12,7 @@ bool debugShowCheckedModeBanner = false;
 var userIdentity,newDateTime,documentId;
 QuerySnapshot motorList;
 FlatButton _iconButton;
+bool isEmpty = true ;
 
    getData() async {
    return await FirebaseFirestore.instance.collection('motorList')
@@ -23,6 +25,7 @@ FlatButton _iconButton;
     getData().then((results){
       setState(() {
         motorList = results;
+        isEmpty = motorList.docs.isEmpty;
       });
     });
     _iconButton = FlatButton(child: null, onPressed: null);
@@ -32,13 +35,19 @@ FlatButton _iconButton;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _stockList()      
+        appBar: AppBar(
+           backgroundColor: Colors.white,
+           shadowColor: Colors.black12,
+            automaticallyImplyLeading: false,
+           title: Text('Bad Motors List',style: TextStyle(fontSize: 20,
+           fontWeight: FontWeight.w600, color: Colors.green),),
+           centerTitle: true,
+         ),
+      body: (isEmpty != true)? _stockList() : _stocKListIsEmpty()    
     );           
   }
 
   Widget _stockList(){
-    if (motorList!=null){
-
       return ListView.builder(
        itemCount:motorList.docs.length ,
        padding: EdgeInsets.only(top:8) ,
@@ -163,13 +172,31 @@ FlatButton _iconButton;
       },
      
       );
-    }
+  }
 
-     
+   Container _stocKListIsEmpty(){
+           return Container(
+                  alignment: Alignment.center,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                  Text('You have no motor in record \nClick button to add', 
+                textAlign: TextAlign.center, style: TextStyle(fontSize:15),),
 
-    else{
-      return Text('Loading, Please wait......', textAlign: TextAlign.center,);
-    }
+                  SizedBox(height:10),
+                  
+              FloatingActionButton(
+       backgroundColor: Colors.white,
+          onPressed: () {
+           Navigator.of(context).pushReplacement(
+                   MaterialPageRoute(builder: (BuildContext context)=>AddItemPage()));
+          },
+          child: Icon(Icons.add, size: 30, color: Colors.orangeAccent),
+          tooltip: 'Add motor to list',
+        )
+         ]
+      ) 
+    );  
   }
 
   Row row({String text1, String text2 }) {

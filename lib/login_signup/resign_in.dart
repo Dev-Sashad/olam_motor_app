@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:motorapp/homepage/homepage.dart';
+import 'package:motorapp/login_signup/forgetpassword.dart';
 import 'package:motorapp/login_signup/sign_in.dart';
 import 'package:motorapp/services/authentication.dart';
 
@@ -14,8 +15,7 @@ class ResigninPage extends StatefulWidget {
 class ResigninPageState extends State<ResigninPage> {
   final formKey = GlobalKey<FormState>();
    final BaseAuth auth= Auth();
- String _email= '', _password= '';
- var name,surname,portfolio;
+ var _email= ' ', _password= ' ', name=' ',surname=' ',portfolio=' ', _image;
  bool _passwordVisible;
 var userIdentity;
 DocumentSnapshot userDetails;
@@ -44,17 +44,21 @@ String passwordValidator(String value) {
   
 }
 
+//delay loading
+ Future <bool> checkSession() async {
+    await Future.delayed(Duration(milliseconds: 5000), (){});
+    return true;
+ }
 
 
 // loadng dialoge
-void _loadingDialog() {
-    showDialog(
+Future <void> _loadingDialog() {
+   return showDialog(
       context: context,
       builder: (BuildContext context) {
         // return object of type Dialog
         return AlertDialog(
           backgroundColor: Colors.transparent,
-          title: new Text(""),
           content: Container(
             height: MediaQuery.of(context).size.height*0.15,
           child:SpinKitFadingCube(
@@ -76,12 +80,15 @@ void _loadingDialog() {
         // return object of type Dialog
         return AlertDialog(
           title: new Image.asset('assets/notsuccessful.png',),
-          content: new Text("Invalid Credentials \n kindly provide valid details"),
+          content: new Text("Invalid Credentials \nkindly provide valid details",textAlign: TextAlign.center),
+          titlePadding: EdgeInsets.all(0),
+          contentPadding: EdgeInsets.all(5),
+          actionsPadding: EdgeInsets.symmetric(horizontal:20),
           actions: <Widget>[
             new FlatButton(
               child: new Text("Dismiss"),
               onPressed: () {             
-               Navigator.of(context).pop();
+               Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context)=>ResigninPage()));
               },
             ),
           ],
@@ -98,12 +105,15 @@ void _loadingDialog() {
         // return object of type Dialog
         return AlertDialog(
           title: new Image.asset('assets/notsuccessful.png',),
-          content: new Text("Incorrect Password"),
+          content: new Text("Incorrect Password",textAlign: TextAlign.center),
+          titlePadding: EdgeInsets.all(0),
+          contentPadding: EdgeInsets.all(5),
+          actionsPadding: EdgeInsets.symmetric(horizontal:20),
           actions: <Widget>[
             new FlatButton(
               child: new Text("Dismiss"),
               onPressed: () {             
-                Navigator.of(context).pop();
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context)=>ResigninPage()));
               },
             ),
           ],
@@ -112,14 +122,6 @@ void _loadingDialog() {
     );
   }
 
-
-
-
-//to delay the loading befor next ation
- Future <bool> checkSession() async {
-    await Future.delayed(Duration(milliseconds: 5000), (){});
-    return true;
- }
 
 //validate all conditions in the form 
 bool validate(){
@@ -138,14 +140,14 @@ bool validate(){
   void logOut() async{
         await FirebaseAuth.instance.signOut();
                  Navigator.of(context).pushReplacement(
-    MaterialPageRoute(builder: (BuildContext context)=>SigninPage())
-  );
+    MaterialPageRoute(builder: (BuildContext context)=>SigninPage()));
   
   }
 
 void submit() async {
    if (validate()){
      _loadingDialog();
+     checkSession().then((value) {
     auth.signIn(_email, _password).catchError((error) {    
       if (error.code == 'user-not-found') {
     print('No user found for this email.');
@@ -154,41 +156,46 @@ void submit() async {
     print('Wrong password provided for that user.');
     _showwrongPasswordDialog();
   }
-  }).then((result) async {      
-          checkSession().then((value) async {
-                if (value){
+  }).then((result) async {
                
-              Navigator.of(context).pushReplacement(
+              Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (BuildContext context)=>Homepage())
            );
-          }});
-  });        
+         
+  });
+     });        
   }
 }
 
  
 @override
-  Future<void> initState() async {
+  void initState() {
     _passwordVisible = true;
 
       //to get User Details
-        userIdentity= FirebaseAuth.instance.currentUser.uid;
+        User user = FirebaseAuth.instance.currentUser;
+        userIdentity = user.uid;
         print('$userIdentity');
-   await FirebaseFirestore.instance.collection('users').doc(userIdentity).get().then((value){
+   
+      FirebaseFirestore.instance.collection('users').doc(userIdentity).get().then((value){
      setState(() {
        userDetails = value;
       });
-  if (userDetails!=null){  
+
+      if (userDetails != null){  
         surname = userDetails.data()['surname'].toString();
         name = userDetails.data()['name'].toString();
         portfolio = userDetails.data()['portfolio'].toString();
         _email= userDetails.data()['email'].toString();
    }
-   else
-    name= null;
-    surname = null;
-    
+
    });
+
+   
+          setState(() {
+            _image = user.photoURL;
+          });
+  
  
     super.initState();
   }
@@ -206,56 +213,87 @@ void submit() async {
         child:SingleChildScrollView(
          child: Container(
                     height: MediaQuery.of(context).size.height,
-                    width: MediaQuery.of(context).size.width,               
+                    width: MediaQuery.of(context).size.width,
+                    decoration: BoxDecoration(
+                                  color: Colors.white
+                                  ),               
                     child: Column(
                         children: [
+                    
                           Container(
-                            height: MediaQuery.of(context).size.height*0.35,
-                            width: MediaQuery.of(context).size.width,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5) , bottomRight: Radius.circular(5))
-                            ),
-                            child: Image.asset('assest/olamimage.png', height: MediaQuery.of(context).size.height*0.35,
-                              width: MediaQuery.of(context).size.width,
-                             ),
+                              margin: EdgeInsets.only(top:10),
+                              height: MediaQuery.of(context).size.height*0.4,
+                          
+                         child:    Align(
+                  alignment: Alignment.center,
+                  child:CircleAvatar(
+                    backgroundColor: Colors.white,
+                    radius: 80,
+                    child: ClipOval(
+                     child: SizedBox(
+                       width:150,
+                       height:150,
+                      child: (_image !=null)? Image.network(_image,fit:BoxFit.cover,loadingBuilder:(BuildContext context, Widget child,ImageChunkEvent loadingProgress) {
+  if (loadingProgress == null) return child;
+    return Container(
+      width: 100,
+      alignment: Alignment.center,
+      child: CircularProgressIndicator(
+        strokeWidth: 2.0,
+      value: loadingProgress.expectedTotalBytes != null ? 
+             loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes
+             : null,
+      ),
+    );
+  },): 
+                   Image.asset('assets/user.png',fit:BoxFit.fill, color: Colors.blueGrey,),
 
-                          ),
-
-                          SizedBox( height:10,),
+                     ),
+                    ),
+                  )
+                  ),
+                         ),
 
                         Expanded(
                           child:Container(
                             color: Colors.white,
                           child: Padding(padding: EdgeInsets.symmetric(horizontal: 10),
                           child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                                 Column(
-                                  children:[
-                          Text('Welcome Back!', style:TextStyle(fontWeight: FontWeight.bold, fontSize:20, color:Colors.black)),
-                              SizedBox(height:5),
+                                  children:[                          
+                
+                     Text('Welcome Back!', style:TextStyle(fontWeight: FontWeight.bold, fontSize:20, color:Colors.black)),
+                            
+                           SizedBox(height:10),
+                      
+                        Text(portfolio.toString(), style:TextStyle(fontWeight: FontWeight.bold, fontSize:15, color:Colors.green)), 
+                             SizedBox(height:5),      
                              Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SizedBox(width:5),
-                    Text(surname, style:TextStyle(fontWeight: FontWeight.bold, fontSize:20, color:Colors.green)),
-                    Text(name, style:TextStyle(fontWeight: FontWeight.bold, fontSize:20, color:Colors.green)),
+                     
+                    Text(surname.toString(), style:TextStyle(fontWeight: FontWeight.bold, fontSize:20, color:Colors.green)),
+                     SizedBox(width:5),
+                    Text(name.toString(), style:TextStyle(fontWeight: FontWeight.bold, fontSize:20, color:Colors.green)),
                     ],
                   ),
 
-                          SizedBox(height:5),
-                        Text(portfolio, style:TextStyle(fontWeight: FontWeight.bold, fontSize:20, color:Colors.green)), 
-                                   ] ),
+                          ] ),
                               SizedBox( height:10,),
-                              Text('Enter your password', style: TextStyle( fontSize:20,
-                              color: Colors.black)),
-                            
-                              SizedBox( height:15,),
+                          
 
                                Form(key:formKey,
                
                               child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [                 
+                            children: [  
+                                  Text('Enter your password', style: TextStyle( fontSize:15,
+                              color: Colors.black)),
+                            
+                              SizedBox( height:5,),               
                              container(
                              TextFormField(
                       decoration: buildSignupInputDecoration(
@@ -287,9 +325,10 @@ void submit() async {
 
                             flatbutton(
                             FlatButton(onPressed: (){
-                                         submit();
+                                            Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (BuildContext context)=>ForgetPasswordPage()));
                                        }, 
-                        child:Text('Password Reset', style: TextStyle( color:Colors.white, fontSize:15),),
+                        child:Text('Forgot Password ?', style: TextStyle( color:Colors.white, fontSize:15),),
                   ),
                             ),
                                                
@@ -305,24 +344,21 @@ void submit() async {
                         ),
         
 
-             BottomAppBar(
-             
+                  Align(
+                    alignment: Alignment.bottomCenter,
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children:[
                        Container(
                      
                      alignment: Alignment.bottomLeft,
-                height:  MediaQuery.of(context).size.height*0.15,
+                height:  MediaQuery.of(context).size.height*0.12,
                 width:  MediaQuery.of(context).size.width*0.5,
                 child: FlatButton(
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
                   color: Colors.green,
                     onPressed: (){
-                      setState(() {
-                  Navigator.of(context).pushReplacement(
-    MaterialPageRoute(builder: (BuildContext context)=>SigninPage()));
-                     });
+                    submit();
                     },
                    child: Center(
                      child: Row(
@@ -389,7 +425,7 @@ return InputDecoration(
       suffixIcon: suffixIcon,
      hintText: hint,
      hintStyle: TextStyle( 
-     fontSize: 10,
+     fontSize: 15,
       fontFamily: 'Montserrat',
       color: Colors.grey,
       ),     
@@ -400,6 +436,9 @@ return InputDecoration(
 
 Container container (TextFormField child){
 return Container(
+  margin: EdgeInsets.symmetric(horizontal:20),
+  width: MediaQuery.of(context).size.width,
+  height: 50,
                 child: Material(
                   borderRadius: BorderRadius.circular(5),
                   shadowColor: Colors.grey,
@@ -412,15 +451,33 @@ return Container(
 
 Container flatbutton (FlatButton child){
 return Container(
-  margin: EdgeInsets.symmetric(horizontal:20),
+  margin: EdgeInsets.symmetric(horizontal:20, vertical:30),
                 child: Material(
                   borderRadius: BorderRadius.circular(5),
                   shadowColor: Colors.grey,
-                  color: Colors.green,
-                  elevation: 2.0,
+                  color: Colors.blueGrey,
+                  elevation: 3.0,
                   child: child,
                     )
               );
 }
 
+}
+
+class CustomMenuClipper extends CustomClipper <Path>{
+  @override
+  Path getClip(Size size) {
+
+    Path path = Path();
+    path.moveTo(0, 0);
+    path.lineTo(0.0, size.height/1.9);
+    path.lineTo(size.width +125, 0.0);
+    path.close();
+      return path;
+    }
+  
+    @override
+    bool shouldReclip(CustomClipper<Path> oldClipper) {
+  return true;
+  }
 }

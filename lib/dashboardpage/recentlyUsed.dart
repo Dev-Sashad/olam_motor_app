@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:motorapp/pages/addItem.dart';
 
 class RecentlyUsedPage extends StatefulWidget {
 
@@ -12,6 +13,7 @@ bool debugShowCheckedModeBanner = false;
 var userIdentity;
 QuerySnapshot motorList;
 IconButton _iconButton;
+bool isEmpty = true ;
 
    getData() async {
    return await FirebaseFirestore.instance.collection('usedMotor')
@@ -23,22 +25,29 @@ IconButton _iconButton;
     getData().then((results){
       setState(() {
         motorList = results;
+        isEmpty = motorList.docs.isEmpty;
       });
     });
-    _iconButton = IconButton(icon: null, onPressed: null);
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _stockList()      
+      appBar: AppBar(
+          backgroundColor: Colors.white,
+           shadowColor: Colors.black12,
+            automaticallyImplyLeading: false,
+           title: Text('Recently Used Motors',style: TextStyle(fontSize: 20,
+           fontWeight: FontWeight.w600, color: Colors.green),),
+           centerTitle: true,
+         ),
+      body:(isEmpty != true)? _stockList() : Align( alignment: Alignment.center,
+      child: _stocKListIsEmpty() )    
     );           
   }
 
   Widget _stockList(){
-    if (motorList!=null){
-
       return ListView.builder(
        itemCount:motorList.docs.length ,
        padding: EdgeInsets.only(top:8) ,
@@ -139,14 +148,33 @@ IconButton _iconButton;
       },
      
       );
-    }
-
-     
-
-    else{
-      return Text('Loading, Please wait......', textAlign: TextAlign.center,);
-    }
   }
+
+ Container _stocKListIsEmpty(){
+           return Container(
+                  alignment: Alignment.center,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                  Text('You have no motor in record \nClick button to add', 
+                textAlign: TextAlign.center, style: TextStyle(fontSize:15),),
+
+                  SizedBox(height:10),
+                  
+              FloatingActionButton(
+       backgroundColor: Colors.white,
+          onPressed: () {
+           Navigator.of(context).pushReplacement(
+                   MaterialPageRoute(builder: (BuildContext context)=>AddItemPage()));
+          },
+          child: Icon(Icons.add, size: 30, color: Colors.orangeAccent),
+          tooltip: 'Add motor to list',
+        )
+         ]
+      ) 
+    );  
+  }
+
 
   Row row({String text1, String text2 }) {
     return  Row(children: [

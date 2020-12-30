@@ -6,6 +6,7 @@ import 'package:motorapp/login_signup/forgetpassword.dart';
 import 'package:motorapp/login_signup/sign_up.dart';
 import 'package:motorapp/services/authentication.dart';
 
+
 class SigninPage extends StatefulWidget {
 
 
@@ -17,9 +18,14 @@ class SigninPageState extends State<SigninPage> {
   final formKey = GlobalKey<FormState>();
    final BaseAuth auth= Auth();
   bool _passwordVisible;
-  String _email= '', _password= '';
+  String _email= 'email', _password= '';
   
 
+//delay loading
+ Future <bool> checkSession() async {
+    await Future.delayed(Duration(milliseconds: 3000), (){});
+    return true;
+ }
 
 //email validator
  String emailValidator(String value) {
@@ -27,7 +33,7 @@ class SigninPageState extends State<SigninPage> {
       r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
   RegExp regex = new RegExp(pattern);
   if (!regex.hasMatch(value)) {
-    return 'Email format is invalid';
+    return 'email format is invalid';
   }
   
   else if (value.isEmpty){
@@ -62,14 +68,13 @@ String passwordValidator(String value) {
 }
 
 // loadng dialoge
-void _loadingDialog() {
-    showDialog(
+Future <void> _loadingDialog() {
+   return showDialog(
       context: context,
       builder: (BuildContext context) {
         // return object of type Dialog
         return AlertDialog(
-          backgroundColor: Colors.transparent,
-          title: new Text(""),
+          backgroundColor: Colors.white10,
           content: Container(
             height: MediaQuery.of(context).size.height*0.15,
           child:SpinKitFadingCube(
@@ -91,12 +96,15 @@ void _loadingDialog() {
         // return object of type Dialog
         return AlertDialog(
           title: new Image.asset('assets/notsuccessful.png',),
-          content: new Text("Invalid Credentials \n kindly provide valid details"),
+          content: new Text("Invalid Credentials \nkindly provide valid details", textAlign: TextAlign.center),
+          titlePadding: EdgeInsets.all(0),
+          contentPadding: EdgeInsets.all(0),
+          actionsPadding: EdgeInsets.symmetric(horizontal:20),
           actions: <Widget>[
             new FlatButton(
               child: new Text("Dismiss"),
               onPressed: () {             
-               Navigator.of(context).pop();
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context)=>SigninPage()));
               },
             ),
           ],
@@ -113,12 +121,15 @@ void _loadingDialog() {
         // return object of type Dialog
         return AlertDialog(
           title: new Image.asset('assets/notsuccessful.png',),
-          content: new Text("Incorrect Password"),
+          content: new Text("Incorrect Password", textAlign: TextAlign.center),
+          titlePadding: EdgeInsets.all(0),
+          contentPadding: EdgeInsets.all(5),
+          actionsPadding: EdgeInsets.symmetric(horizontal:20),
           actions: <Widget>[
             new FlatButton(
               child: new Text("Dismiss"),
               onPressed: () {             
-                Navigator.of(context).pop();
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context)=>SigninPage()));
               },
             ),
           ],
@@ -135,14 +146,15 @@ void _loadingDialog() {
         // return object of type Dialog
         return AlertDialog(
           title: new Image.asset('assets/successful.png',),
-          content: new Text(" Email is not verified \n kindly login to your mail for verification"),
+          content: new Text(" Email is not verified \n kindly login to your mail for verification",textAlign: TextAlign.center),
+          titlePadding: EdgeInsets.all(0),
+          contentPadding: EdgeInsets.all(5),
+          actionsPadding: EdgeInsets.symmetric(horizontal:20),
           actions: <Widget>[
             new FlatButton(
               child: new Text("Dismiss"),
              onPressed: () {             
-               Navigator.of(context).pushReplacement(
-    MaterialPageRoute(builder: (BuildContext context)=>SigninPage())
-  );
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context)=>SigninPage()));
               },
             ),
           ],
@@ -151,11 +163,6 @@ void _loadingDialog() {
     );
   }
 
-//to delay the loading befor next ation
- Future <bool> checkSession() async {
-    await Future.delayed(Duration(milliseconds: 5000), (){});
-    return true;
- }
 
 //validate all conditions in the form 
 bool validate(){
@@ -172,8 +179,9 @@ bool validate(){
 
 void submit() async {
    if (validate()){
-     _loadingDialog();
-    auth.signIn(_email, _password).catchError((error) {    
+         _loadingDialog();
+     checkSession().then((value) {
+         auth.signIn(_email, _password).catchError((error) {    
       if (error.code == 'user-not-found') {
     print('No user found for this email.');
         _showwrongCredentialsDialog();
@@ -182,22 +190,28 @@ void submit() async {
     _showwrongPasswordDialog();
   }
   }).then((result) async {
-          checkSession().then((value) async {
-                if (value){
-                 User user = FirebaseAuth.instance.currentUser;
+            User user = FirebaseAuth.instance.currentUser;
                if(!user.emailVerified){
-                 user.sendEmailVerification();
-                 FirebaseAuth.instance.signOut();
-                    _showVerifyEmailDialog();
-                }          
-             else{  
-              Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (BuildContext context)=>Homepage())
-           );
+                      checkSession().then((event) async {
+                await user.sendEmailVerification().then((value){
+                    // FirebaseAuth.instance.signOut();
+                   return  _showVerifyEmailDialog();     
+                 });
+                      });
                 } 
 
-          }});
-  });        
+             else{  
+                 checkSession().then((event) async {
+            Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (BuildContext context)=>Homepage())
+           );
+                });
+                }
+                  
+  });
+
+     });
+           
   }
 }
 
@@ -210,6 +224,7 @@ void submit() async {
   Widget build(BuildContext context) {
   
   return Scaffold(
+    backgroundColor: Colors.white,
     body: LayoutBuilder(
       builder: (ctx, constrains){
         return Scaffold(
@@ -222,12 +237,13 @@ void submit() async {
                     child: Column(
                         children: [
                           Container(
-                            height: MediaQuery.of(context).size.height*0.35,
+                            
+                            height: MediaQuery.of(context).size.height*0.3,
                             width: MediaQuery.of(context).size.width,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5) , bottomRight: Radius.circular(5))
                             ),
-                            child: Image.asset('assest/olamimage.png', height: MediaQuery.of(context).size.height*0.35,
+                            child: Image.asset('assets/olamimage.png', height: MediaQuery.of(context).size.height*0.3,
                               width: MediaQuery.of(context).size.width,
                              ),
 
@@ -238,15 +254,27 @@ void submit() async {
                         Expanded(
                           child:Container(
                             color: Colors.white,
-                          child: Padding(padding: EdgeInsets.symmetric(horizontal: 10),
+                          child: Padding(padding: EdgeInsets.symmetric(horizontal: 15),
                           child: Column(
                             children: [
-                              Text('Login', style: TextStyle( fontSize: 20, fontWeight:FontWeight.w200, color: Colors.green)),
+                              Align(
+                                alignment: Alignment.topLeft,
+                                child:Text('Login', style: TextStyle( fontSize: 30, fontWeight:FontWeight.w600, color: Colors.green),
+                              textAlign:TextAlign.left
+                              ),
+                              ),
+                              
                               SizedBox( height:10,),
-                              Text('Making work easier, faster and smarter. No stress, No fuzz', style: TextStyle( fontSize:10,
-                              color: Colors.black)),
+                              
+                               Align(
+                                alignment: Alignment.topLeft,
+                                child:Text('Making work easier, faster and smarter. No stress, No fuzz', style: TextStyle( fontSize:13,
+                              color: Colors.black),
+                              textAlign:TextAlign.left
+                              ),
+                              ),
                             
-                              SizedBox( height:15,),
+                              SizedBox( height:30,),
 
                                Form(key:formKey,
                
@@ -255,9 +283,14 @@ void submit() async {
                             children: [
                                   
                              TextFormField(
+                                        style: TextStyle( 
+                                          fontSize: 15,
+                                        fontFamily: 'Montserrat',
+                                        color: Colors.black,
+                                          ),
                                         decoration: buildSignupInputDecoration(
-                                          Icon(Icons.mail, color: Colors.grey,),
-                                          'email',
+                                          Icon(Icons.mail, color: Colors.green,),
+                                          _email,
                                           // ignore: missing_required_param
                                           IconButton(icon: Icon(null))
                                         ),
@@ -270,6 +303,11 @@ void submit() async {
                              SizedBox(height:10) ,            
 
                             TextFormField(
+                            style: TextStyle( 
+                                          fontSize: 15,
+                                        fontFamily: 'Montserrat',
+                                        color: Colors.black,
+                                          ),
                       decoration: buildSignupInputDecoration(
                       Icon(Icons.lock,color: Colors.green,),
                                 'Password',
@@ -300,20 +338,45 @@ void submit() async {
                             ), 
 
                               SizedBox(height:20) ,
+        
+                            ]    
+                           ),
+                         ),
 
-                            Row(
-                              mainAxisSize: MainAxisSize.max,
+                            ],
+                          )
+                          )
+                          
+                          )
+                        ),
+        
+
+             Align(
+                      alignment: Alignment.bottomCenter,
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                  
+                     Container(
+                       color:Colors.white,
+                             padding:EdgeInsets.fromLTRB(20,0,20,10),
+                              child:Row(
+                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children:[
 
                                        FlatButton(onPressed: (){
-                                         auth.signInWithGoogle();
+                                         _loadingDialog();
+                                            auth.signInWithGoogle().then((value) { 
+                                              User user = FirebaseAuth.instance.currentUser;
+                                              return _email = user.email.toString();
+                                            });           
                                        }, 
                         child: Row(
                                mainAxisAlignment: MainAxisAlignment.center,
                            children: [
                              Text('Sign in with Google', style: TextStyle( color:Colors.black, fontSize:15),),
                                  SizedBox(width: 5,),
-                             Image.asset('assets/google.png',)
+                             Image.asset('assets/google.png', height:15,)
                         ],)
 
                   ),
@@ -328,28 +391,16 @@ void submit() async {
                               ),
 
                               ]
-                            )                   
-                            ]    
-                           ),
-                         ),
+                            )
+                            ),           
 
-                            ],
-                          )
-                          )
-                          
-                          )
-                        ),
-        
-
-             BottomAppBar(
-             
-                child: Row(
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children:[
                        Container(
                      
                      alignment: Alignment.bottomLeft,
-                height:  MediaQuery.of(context).size.height*0.15,
+                height:  MediaQuery.of(context).size.height*0.12,
                 width:  MediaQuery.of(context).size.width*0.5,
                 child: FlatButton(
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
@@ -411,6 +462,8 @@ void submit() async {
 
                   ]  
                 ),
+                ]
+                )
               ), 
 
                         ],
@@ -435,9 +488,9 @@ return InputDecoration(
       suffixIcon: suffixIcon,
      hintText: hint,
      hintStyle: TextStyle( 
-     fontSize: 10,
+     fontSize: 15,
       fontFamily: 'Montserrat',
-      color: Colors.grey,
+      color: Colors.black,
       ),     
       enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey, width:1.0), 
       borderRadius: BorderRadius.circular(5),),

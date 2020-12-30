@@ -3,7 +3,6 @@ import 'package:motorapp/login_signup/sign_in.dart';
 import 'package:motorapp/login_signup/sign_up.dart';
 
 
-
 class FirstPage extends StatefulWidget {
   @override
   FirstPageState createState() => FirstPageState();
@@ -25,17 +24,17 @@ class FirstPageState extends State<FirstPage> {
                 child: FlatButton(onPressed: (){
              Navigator.of(context).pop();
          },           
-         child:Icon(Icons.cancel, color: Colors.grey, size: 10,),
+         child:Icon(Icons.cancel, color: Colors.grey, size: 20,),
          
          ), 
                 ),
 
-            Text("Would you like to \n create a free account?", style: TextStyle(fontSize:20, color:Colors.green),),
+            Text("Would you like to \ncreate a free account?", style: TextStyle(fontSize:20, color:Colors.green),),
 
             ]
           ),
 
-          content: new Text("With an account, your data \n will be securely saved, \n allowing you to access it from \n multiple device "),
+          content: new Text("With an account, your data will be \nsecurely saved, allowing you to \naccess it from multiple device "),
           actions: <Widget>[
             new FlatButton(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)
@@ -65,24 +64,44 @@ class FirstPageState extends State<FirstPage> {
   Widget build(BuildContext context) {
 
     return Scaffold(
-      backgroundColor: Colors.green,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+     backgroundColor: Colors.white,
+      body: Container(
+        margin: EdgeInsets.symmetric(horizontal:50),
+      child: Column(
+       // crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
 
       children: [
-        Text('Welcome', style:TextStyle( fontSize: 30, color: Colors.white),),
+              SizedBox(height:20) ,
+        Text('Welcome', style:TextStyle( fontSize: 30, color: Colors.green, fontWeight:FontWeight.bold),
+        textAlign:TextAlign.center
+        ),
+              SizedBox(height:20) ,
 
-        Text('This App helps to keep record of all motor details \n in the plant for adequate operation and planning', 
-        style:TextStyle( fontSize: 20, color: Colors.white),),
-      
+        Flexible(child: Text('This App helps to keep record of \n all motor details in the plant for \n adequate operation and planning', 
+        style:TextStyle( fontSize: 20, color: Colors.green),
+        textAlign:TextAlign.center
+        ),
+        ),
+        
+              SizedBox(height:20) ,
         Container(
-                height:  MediaQuery.of(context).size.height*0.15,
-                width:  MediaQuery.of(context).size.width*0.6,
+                height:  MediaQuery.of(context).size.height*0.1,
+                width:  MediaQuery.of(context).size.width*0.7,
+                decoration: BoxDecoration(
+                    color: Colors.green,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                   BoxShadow(
+                     blurRadius:4,
+                     color:Colors.black12
+                   )
+                 ],
+                ),
                 child:FlatButton(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)
-                  ),
-                  color: Colors.greenAccent,
+                  //shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)
+                  //),
+                  //color: Colors.greenAccent,
                     onPressed: getStarted,
                    child: Center(
                      child: Row(
@@ -103,13 +122,20 @@ class FirstPageState extends State<FirstPage> {
                      )
                    ), 
                     )),
-
+                      SizedBox(height:20) ,
             Container(
-                height:  MediaQuery.of(context).size.height*0.15,
-                width:  MediaQuery.of(context).size.width*0.6,
+                height:  MediaQuery.of(context).size.height*0.1,
+                width:  MediaQuery.of(context).size.width*0.7,
                 decoration: BoxDecoration(
                  borderRadius: BorderRadius.circular(5),
-                 border: Border.all( color:Colors.green, width: 1.0),
+                // border: Border.all( color:Colors.green, width: 1.5),
+                 boxShadow: [
+                   BoxShadow(
+                     blurRadius:4,
+                     color:Colors.black12
+                   )
+                 ],
+                 color: Colors.white
                 ),
                 child:FlatButton(
                     onPressed: (){
@@ -128,7 +154,7 @@ class FirstPageState extends State<FirstPage> {
                      )),
 
                       SizedBox(width:5),
-                      Icon(Icons.arrow_forward_ios, color:Colors.white, size:20,),
+                      Icon(Icons.arrow_forward_ios, color:Colors.green, size:20,),
 
                        ]
                      )
@@ -139,7 +165,7 @@ class FirstPageState extends State<FirstPage> {
 
       ],
       ),
-
+      )
     );
     
   }
